@@ -1,0 +1,2106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>ChartPro Workspace</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+<style>
+/* ═══════════════ TOKENS — Light Theme ═══════════════ */
+:root{
+  --navy:#00447A; --blue:#0080BA; --blue-lt:#3DABDE; --orange:#FF9901;
+  --purple:#7B2FBE; --red:#E63946; --green:#22C55E;
+  --bg:#EEF2F7; --surface:#ffffff; --surface2:#F7F9FC; --surface3:#EEF3F9;
+  --border:#DDE3ED; --border2:#C8D4E0;
+  --text:#1A2E44; --text2:#4A5568; --text3:#8A98AA;
+  --accent:var(--blue);
+  --panel-w:330px; --topbar-h:48px; --tabbar-h:40px;
+  --radius:10px; --radius-sm:7px;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);
+  height:100vh;display:flex;flex-direction:column;overflow:hidden;}
+
+/* ═══════════════ TOPBAR ═══════════════ */
+.topbar{
+  height:var(--topbar-h);background:var(--navy);
+  display:flex;align-items:center;gap:10px;padding:0 16px;
+  flex-shrink:0;border-bottom:1px solid rgba(0,0,0,.15);
+  box-shadow:0 2px 10px rgba(0,68,122,.25);z-index:100;
+}
+.logo{font-size:15px;font-weight:800;letter-spacing:2.5px;color:#fff;white-space:nowrap;}
+.logo em{color:var(--orange);font-style:normal;}
+.topbar-sep{width:1px;height:20px;background:rgba(255,255,255,.2);flex-shrink:0;}
+.chart-type-tabs{display:flex;gap:3px;flex-shrink:0;}
+.ct-tab{
+  height:28px;padding:0 11px;border-radius:14px;
+  border:1.5px solid rgba(255,255,255,.18);
+  background:transparent;color:rgba(255,255,255,.65);
+  font-size:11.5px;font-weight:600;cursor:pointer;font-family:inherit;
+  transition:all .15s;white-space:nowrap;
+}
+.ct-tab:hover{background:rgba(255,255,255,.12);color:#fff;}
+.ct-tab.active{background:var(--orange);border-color:var(--orange);color:#fff;}
+.topbar-spacer{flex:1;}
+.topbar-actions{display:flex;gap:6px;align-items:center;}
+.tb-btn{
+  height:28px;padding:0 13px;border-radius:14px;
+  font-size:11.5px;font-weight:600;cursor:pointer;font-family:inherit;
+  border:1.5px solid rgba(255,255,255,.22);
+  background:rgba(255,255,255,.1);color:rgba(255,255,255,.8);
+  transition:all .15s;
+}
+.tb-btn:hover{background:rgba(255,255,255,.2);color:#fff;}
+.tb-btn.primary{background:var(--blue);color:#fff;border-color:var(--blue);}
+.tb-btn.primary:hover{background:var(--blue-lt);border-color:var(--blue-lt);}
+.autosave-dot{
+  width:7px;height:7px;border-radius:50%;background:#4ADE80;
+  display:inline-block;margin-right:4px;
+}
+
+/* ═══════════════ WORKSPACE TABS ═══════════════ */
+.tabbar{
+  height:var(--tabbar-h);background:var(--surface2);
+  display:flex;align-items:flex-end;gap:2px;padding:0 12px;
+  flex-shrink:0;border-bottom:1px solid var(--border);overflow-x:auto;
+}
+.tabbar::-webkit-scrollbar{height:3px;}
+.tabbar::-webkit-scrollbar-thumb{background:var(--border2);border-radius:3px;}
+.ws-tab{
+  height:32px;padding:0 14px;border-radius:8px 8px 0 0;
+  display:flex;align-items:center;gap:7px;
+  background:transparent;border:1px solid transparent;border-bottom:none;
+  color:var(--text3);font-size:12px;font-weight:600;
+  cursor:pointer;font-family:inherit;white-space:nowrap;flex-shrink:0;
+  transition:all .15s;
+}
+.ws-tab:hover{background:var(--surface);color:var(--text2);}
+.ws-tab.active{
+  background:var(--surface);color:var(--text);
+  border-color:var(--border);border-bottom-color:var(--surface);
+  margin-bottom:-1px;
+}
+.ws-tab .tab-icon{font-size:11px;}
+.ws-tab .tab-name{max-width:120px;overflow:hidden;text-overflow:ellipsis;}
+.ws-tab .tab-close{
+  font-size:13px;color:var(--text3);line-height:1;
+  background:none;border:none;cursor:pointer;padding:0 2px;
+  border-radius:3px;font-family:inherit;
+}
+.ws-tab .tab-close:hover{color:var(--red);}
+.tab-add{
+  height:26px;width:26px;border-radius:6px;margin-bottom:3px;
+  display:flex;align-items:center;justify-content:center;
+  background:transparent;border:1.5px dashed var(--border2);color:var(--text3);
+  cursor:pointer;font-size:16px;flex-shrink:0;transition:all .15s;
+}
+.tab-add:hover{background:var(--surface);color:var(--blue);border-color:var(--blue);}
+
+/* ═══════════════ MAIN LAYOUT ═══════════════ */
+.workspace{display:flex;flex:1;overflow:hidden;}
+
+/* ═══════════════ CHART AREA ═══════════════ */
+.chart-area{
+  flex:1;display:flex;flex-direction:column;
+  overflow:hidden;background:#ffffff;min-width:0;
+}
+.chart-header{
+  padding:14px 20px 10px;flex-shrink:0;
+  border-bottom:1px solid var(--border);
+  background:#ffffff;
+}
+.chart-title-disp{
+  font-size:22px;font-weight:800;color:var(--text);line-height:1.2;
+  cursor:pointer;border-radius:5px;padding:2px 5px;margin:-2px -5px;
+  transition:background .12s;
+}
+.chart-title-disp:hover{background:var(--surface2);}
+.chart-sub-disp{
+  font-size:11.5px;color:var(--text3);font-style:italic;margin-top:3px;
+  cursor:pointer;border-radius:5px;padding:1px 5px;margin-left:-5px;
+  transition:background .12s;
+}
+.chart-sub-disp:hover{background:var(--surface2);}
+.kpi-strip{display:flex;gap:8px;padding:10px 20px;flex-shrink:0;background:#ffffff;border-bottom:1px solid var(--border);}
+.kpi-card{
+  flex:1;border-radius:10px;padding:9px 12px;text-align:center;
+  border:1.5px solid;cursor:pointer;transition:opacity .15s;
+}
+.kpi-card:hover{opacity:.8;}
+.kpi-val{font-size:18px;font-weight:800;line-height:1.1;}
+.kpi-lbl{font-size:9px;font-weight:600;margin-top:2px;opacity:.72;text-transform:uppercase;letter-spacing:.4px;}
+.canvas-wrap{
+  flex:1;overflow:auto;position:relative;cursor:crosshair;background:#ffffff;
+}
+.canvas-wrap::-webkit-scrollbar{width:6px;height:6px;}
+.canvas-wrap::-webkit-scrollbar-track{background:#F0F3F8;}
+.canvas-wrap::-webkit-scrollbar-thumb{background:var(--border2);border-radius:6px;}
+#mainCanvas{display:block;}
+.chart-footer{
+  padding:5px 20px;flex-shrink:0;
+  border-top:1px solid var(--border);background:#ffffff;
+  font-size:10px;color:var(--text3);display:flex;align-items:center;gap:12px;
+}
+.chart-footer strong{color:var(--blue);}
+
+/* ═══════════════ SETTINGS PANEL ═══════════════ */
+.settings-panel{
+  width:var(--panel-w);flex-shrink:0;
+  background:var(--surface);border-left:1px solid var(--border);
+  display:flex;flex-direction:column;overflow:hidden;
+  transition:width .2s ease;
+  box-shadow:-2px 0 12px rgba(0,0,0,.04);
+}
+.settings-panel.collapsed{width:38px;}
+.panel-toggle{
+  height:38px;display:flex;align-items:center;justify-content:center;
+  border-bottom:1px solid var(--border);cursor:pointer;flex-shrink:0;
+  color:var(--text3);font-size:14px;transition:all .12s;
+  background:var(--surface2);
+}
+.panel-toggle:hover{background:var(--surface3);color:var(--blue);}
+
+/* Context tabs inside panel */
+.panel-ctx-tabs{
+  display:flex;border-bottom:1px solid var(--border);flex-shrink:0;
+  background:var(--surface2);overflow-x:auto;
+}
+.panel-ctx-tabs::-webkit-scrollbar{height:0;}
+.pctx-tab{
+  flex:1;height:38px;display:flex;align-items:center;justify-content:center;
+  gap:4px;font-size:10px;font-weight:700;color:var(--text3);
+  cursor:pointer;border-bottom:2px solid transparent;
+  white-space:nowrap;padding:0 6px;flex-shrink:0;
+  text-transform:uppercase;letter-spacing:.4px;
+  transition:all .12s;
+}
+.pctx-tab:hover{color:var(--text2);background:var(--surface3);}
+.pctx-tab.active{color:var(--blue);border-bottom-color:var(--blue);background:var(--surface);}
+.pctx-icon{font-size:12px;}
+
+.panel-body{flex:1;overflow-y:auto;padding:12px 14px;}
+.panel-body::-webkit-scrollbar{width:5px;}
+.panel-body::-webkit-scrollbar-track{background:#F0F3F8;}
+.panel-body::-webkit-scrollbar-thumb{background:var(--border2);border-radius:5px;}
+.panel-section{display:none;}
+.panel-section.active{display:block;}
+
+/* ═══════════════ FORM CONTROLS ═══════════════ */
+.fg{display:flex;flex-direction:column;gap:3px;margin-bottom:9px;}
+.fg:last-child{margin-bottom:0;}
+.fg>label{font-size:10.5px;color:var(--text2);font-weight:600;letter-spacing:.3px;}
+.fg input[type=text],.fg input[type=number],.fg select{
+  height:34px;border:1.5px solid var(--border);border-radius:7px;
+  padding:0 10px;font-size:12.5px;color:var(--text);
+  background:var(--surface2);font-family:inherit;width:100%;
+  transition:border-color .12s,background .12s;
+}
+.fg input:focus,.fg select:focus{outline:none;border-color:var(--blue);background:#fff;box-shadow:0 0 0 3px rgba(0,128,186,.08);}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+.row3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;}
+.sec{
+  font-size:10.5px;font-weight:700;color:var(--blue);
+  text-transform:uppercase;letter-spacing:.6px;
+  padding:10px 0 5px;border-bottom:2px solid #EAF2F8;
+  margin-bottom:9px;
+}
+.sec:first-child{padding-top:0;}
+.color-row{display:flex;align-items:center;gap:7px;}
+.color-row input[type=color]{
+  width:34px;height:34px;border:1.5px solid var(--border);border-radius:7px;
+  padding:2px;cursor:pointer;flex-shrink:0;background:#fff;
+}
+.color-row input[type=text]{flex:1;}
+.tog-row{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:7px 0;border-bottom:1px solid #F2F5F9;
+}
+.tog-row:last-child{border-bottom:none;}
+.tog-lbl{font-size:13px;color:var(--text2);font-weight:500;}
+.sw{position:relative;width:36px;height:20px;flex-shrink:0;}
+.sw input{opacity:0;width:0;height:0;}
+.sl{position:absolute;cursor:pointer;inset:0;background:#C8D4E0;border-radius:20px;transition:.2s;}
+.sl:before{content:"";position:absolute;width:14px;height:14px;left:3px;top:3px;background:#fff;border-radius:50%;transition:.2s;box-shadow:0 1px 3px rgba(0,0,0,.2);}
+input:checked+.sl{background:var(--blue);}
+input:checked+.sl:before{transform:translateX(16px);}
+.add-btn{
+  width:100%;padding:8px;margin-top:7px;
+  background:#EBF5FF;color:var(--blue);
+  border:1.5px dashed #A8CFEA;border-radius:8px;
+  font-size:12.5px;font-weight:700;cursor:pointer;font-family:inherit;
+  transition:background .12s;
+}
+.add-btn:hover{background:#D6EAFF;}
+
+/* Data point cards */
+.dp-list{display:flex;flex-direction:column;gap:7px;}
+.dp-card{
+  background:var(--surface2);border:1.5px solid var(--border);
+  border-radius:9px;padding:9px 11px;cursor:pointer;
+  transition:border-color .15s,box-shadow .15s;
+}
+.dp-card:hover{border-color:var(--border2);box-shadow:0 2px 8px rgba(0,0,0,.06);}
+.dp-card.selected{border-color:var(--blue);box-shadow:0 0 0 3px rgba(0,128,186,.1);}
+.dp-card-hdr{display:flex;align-items:center;gap:7px;margin-bottom:7px;}
+.dp-swatch{
+  width:13px;height:13px;border-radius:50%;flex-shrink:0;
+  border:2px solid rgba(255,255,255,.8);box-shadow:0 0 0 1.5px var(--border);cursor:pointer;
+}
+.dp-idx{font-size:10px;font-weight:700;color:var(--text3);flex:1;text-transform:uppercase;letter-spacing:.5px;}
+.dp-rm{background:none;border:none;color:#CBD5E1;font-size:15px;cursor:pointer;padding:1px 3px;border-radius:4px;}
+.dp-rm:hover{color:var(--red);}
+.dp-card input[type=text],.dp-card input[type=number]{
+  width:100%;height:30px;border:1.5px solid var(--border);border-radius:6px;
+  padding:0 8px;font-size:12px;color:var(--text);
+  background:#fff;font-family:inherit;
+  transition:border-color .12s;
+}
+.dp-card input:focus{outline:none;border-color:var(--blue);box-shadow:0 0 0 2px rgba(0,128,186,.08);}
+.dp-card input[type=color]{
+  width:100%;height:30px;border:1.5px solid var(--border);border-radius:6px;
+  padding:2px 3px;cursor:pointer;background:#fff;
+}
+.dp-grid{display:grid;grid-template-columns:1fr 64px;gap:7px;margin-bottom:7px;}
+.dp-grid2{display:grid;grid-template-columns:1fr 1fr;gap:7px;}
+.dp-lbl{font-size:10px;color:var(--text3);font-weight:600;display:block;margin-bottom:3px;text-transform:uppercase;letter-spacing:.3px;}
+
+/* KPI edit */
+.kpi-edit-row{
+  display:grid;grid-template-columns:1fr 1fr 32px 22px;
+  gap:6px;align-items:center;margin-bottom:6px;
+  background:var(--surface2);border:1.5px solid var(--border);
+  border-radius:8px;padding:7px 9px;
+}
+.kpi-edit-row input[type=text]{
+  height:30px;border:1.5px solid var(--border);border-radius:6px;
+  padding:0 8px;font-size:12px;color:var(--text);
+  background:#fff;font-family:inherit;width:100%;
+}
+.kpi-edit-row input[type=text]:focus{outline:none;border-color:var(--blue);}
+.kpi-edit-row input[type=color]{
+  width:32px;height:30px;border:1.5px solid var(--border);border-radius:6px;padding:2px;cursor:pointer;background:#fff;
+}
+
+/* Plateau cards */
+.pla-card{
+  background:var(--surface2);border:1.5px solid var(--border);
+  border-radius:9px;overflow:hidden;transition:border-color .15s;
+}
+.pla-card:hover{border-color:var(--border2);}
+.pla-card-hdr{
+  display:flex;align-items:center;gap:8px;padding:8px 10px;
+  cursor:pointer;background:var(--surface2);
+  border-bottom:1px solid transparent;transition:background .12s;
+}
+.pla-card.open .pla-card-hdr{border-bottom-color:var(--border);}
+.pla-card-hdr:hover{background:var(--surface3);}
+.pla-swatch{width:14px;height:14px;border-radius:4px;flex-shrink:0;border:1.5px solid rgba(0,0,0,.1);}
+.pla-name{flex:1;font-size:12px;font-weight:600;color:var(--text);}
+.pla-vis-toggle{
+  width:18px;height:18px;display:flex;align-items:center;justify-content:center;
+  border-radius:4px;cursor:pointer;font-size:13px;color:var(--text3);
+  background:none;border:none;padding:0;
+}
+.pla-vis-toggle.hidden-eye{opacity:.35;}
+.pla-rm{background:none;border:none;color:#CBD5E1;font-size:14px;cursor:pointer;padding:0 2px;border-radius:4px;}
+.pla-rm:hover{color:var(--red);}
+.pla-arr{font-size:9px;color:var(--text3);transition:transform .2s;}
+.pla-card.open .pla-arr{transform:rotate(180deg);}
+.pla-body{display:none;padding:10px 10px 12px;}
+.pla-card.open .pla-body{display:block;}
+
+/* ═══════════════ MODALS ═══════════════ */
+.modal-overlay{
+  position:fixed;inset:0;background:rgba(0,0,0,.45);
+  display:flex;align-items:center;justify-content:center;
+  z-index:1000;backdrop-filter:blur(3px);
+}
+.modal-overlay.hidden{display:none;}
+.modal{
+  background:#fff;border:1px solid var(--border);
+  border-radius:14px;box-shadow:0 20px 60px rgba(0,0,0,.2);
+  width:min(92vw,720px);max-height:88vh;
+  display:flex;flex-direction:column;overflow:hidden;
+}
+.modal-hdr{
+  padding:14px 18px;border-bottom:1px solid var(--border);
+  display:flex;align-items:center;justify-content:space-between;flex-shrink:0;
+  background:#FAFBFD;
+}
+.modal-hdr h2{font-size:14px;font-weight:700;color:var(--navy);}
+.modal-close{
+  background:none;border:none;font-size:18px;cursor:pointer;
+  color:var(--text3);padding:2px 6px;border-radius:5px;
+}
+.modal-close:hover{background:var(--surface2);color:var(--text);}
+.modal-body{display:flex;flex:1;overflow:hidden;}
+.modal-preview{
+  flex:1;background:var(--surface2);padding:14px;
+  display:flex;flex-direction:column;align-items:center;gap:8px;overflow:auto;
+}
+.modal-preview canvas{border-radius:7px;box-shadow:0 4px 16px rgba(0,0,0,.12);max-width:100%;}
+.modal-controls{
+  width:220px;flex-shrink:0;border-left:1px solid var(--border);
+  padding:14px;overflow-y:auto;display:flex;flex-direction:column;gap:10px;
+  background:#FAFBFD;
+}
+.modal-actions{
+  padding:12px 18px;border-top:1px solid var(--border);
+  display:flex;gap:7px;justify-content:flex-end;flex-shrink:0;
+  background:#FAFBFD;
+}
+.btn-dl{
+  padding:7px 18px;border-radius:8px;border:none;
+  font-size:12.5px;font-weight:700;cursor:pointer;font-family:inherit;
+}
+.btn-dl-png{background:var(--blue);color:#fff;}
+.btn-dl-png:hover{background:var(--blue-lt);}
+.btn-dl-svg{background:#166534;color:#86EFAC;}
+.btn-dl-svg:hover{background:#15803D;}
+.btn-dl-cancel{background:var(--surface2);color:var(--text2);border:1.5px solid var(--border);}
+.btn-dl-cancel:hover{background:var(--surface3);}
+.crop-info{font-size:11px;color:var(--text2);background:var(--surface2);border:1px solid var(--border);border-radius:7px;padding:8px 10px;line-height:1.5;}
+
+/* Preset modal */
+.pmodal{
+  background:#fff;border:1px solid var(--border);
+  border-radius:14px;box-shadow:0 20px 60px rgba(0,0,0,.2);
+  width:min(92vw,480px);max-height:88vh;
+  display:flex;flex-direction:column;overflow:hidden;
+}
+.pmodal-body{padding:14px 18px;overflow-y:auto;flex:1;display:flex;flex-direction:column;gap:14px;}
+.preset-save-row{display:flex;gap:7px;}
+.preset-save-row input{
+  flex:1;height:36px;border:1.5px solid var(--border);border-radius:8px;
+  padding:0 12px;font-size:12.5px;font-family:inherit;
+  color:var(--text);background:var(--surface2);
+}
+.preset-save-row input:focus{outline:none;border-color:var(--blue);background:#fff;}
+.btn-save-preset{
+  padding:0 14px;height:36px;background:var(--blue);color:#fff;
+  border:none;border-radius:8px;font-size:12.5px;font-weight:700;cursor:pointer;font-family:inherit;
+}
+.btn-save-preset:hover{background:var(--blue-lt);}
+.preset-list{display:flex;flex-direction:column;gap:5px;max-height:220px;overflow-y:auto;}
+.preset-item{
+  display:flex;align-items:center;gap:8px;padding:9px 11px;
+  background:var(--surface2);border:1.5px solid var(--border);border-radius:9px;
+}
+.preset-item:hover{border-color:var(--border2);}
+.preset-item-name{flex:1;font-size:12.5px;font-weight:600;color:var(--text);}
+.preset-item-date{font-size:10px;color:var(--text3);white-space:nowrap;}
+.btn-load-preset{
+  padding:4px 12px;background:var(--blue);color:#fff;border:none;
+  border-radius:6px;font-size:11.5px;font-weight:700;cursor:pointer;font-family:inherit;
+}
+.btn-load-preset:hover{background:var(--blue-lt);}
+.btn-del-preset{
+  background:none;border:none;color:#CBD5E1;font-size:15px;
+  cursor:pointer;padding:1px 3px;border-radius:3px;
+}
+.btn-del-preset:hover{color:var(--red);}
+.preset-empty{
+  text-align:center;padding:24px;color:var(--text3);font-size:12.5px;
+  border:1.5px dashed var(--border);border-radius:9px;
+}
+.divider-label{
+  font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;
+  letter-spacing:.6px;display:flex;align-items:center;gap:8px;
+}
+.divider-label::before,.divider-label::after{content:'';flex:1;height:1px;background:var(--border);}
+.json-row{display:flex;gap:7px;}
+.btn-json{
+  flex:1;padding:8px;background:var(--surface2);color:var(--text2);
+  border:1.5px solid var(--border);border-radius:8px;
+  font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;
+}
+.btn-json:hover{background:var(--surface3);color:var(--text);}
+</style>
+</head>
+<body>
+
+<!-- ═══ TOPBAR ═══ -->
+<div class="topbar">
+  <div class="logo">CHART<em>PRO</em></div>
+  <div class="topbar-sep"></div>
+  <div class="chart-type-tabs" id="chartTypeTabs">
+    <button class="ct-tab active" data-type="line">📈 Line</button>
+    <button class="ct-tab" data-type="bar">📊 Bar</button>
+    <button class="ct-tab" data-type="area">🏔 Area</button>
+    <button class="ct-tab" data-type="scatter">⊹ Scatter</button>
+    <button class="ct-tab" data-type="step">⌐ Step</button>
+    <button class="ct-tab" data-type="hbar">≡ Progress</button>
+  </div>
+  <div class="topbar-spacer"></div>
+  <div class="topbar-actions">
+    <span id="autosave-indicator" style="font-size:10.5px;color:var(--text3);display:flex;align-items:center;gap:4px;">
+      <span class="autosave-dot"></span>Saved
+    </span>
+    <button class="tb-btn" onclick="openPresetModal()">💾 Presets</button>
+    <button class="tb-btn primary" onclick="applyAll()">▶ Apply</button>
+    <button class="tb-btn" onclick="openExportModal()">⬇ Export</button>
+  </div>
+</div>
+
+<!-- ═══ WORKSPACE TABS ═══ -->
+<div class="tabbar" id="tabbar">
+  <!-- tabs injected by JS -->
+  <button class="tab-add" onclick="addTab()" title="New chart">+</button>
+</div>
+
+<!-- ═══ MAIN WORKSPACE ═══ -->
+<div class="workspace">
+
+  <!-- ── CHART AREA ── -->
+  <div class="chart-area">
+    <div class="chart-header">
+      <div class="chart-title-disp" id="disp-title" onclick="focusPanel('labels')" title="Click to edit title">Regression Cycle Duration</div>
+      <div class="chart-sub-disp"  id="disp-sub"   onclick="focusPanel('labels')" title="Click to edit subtitle">Continuous improvement drove an 8× reduction in cycle time</div>
+    </div>
+    <div class="kpi-strip" id="kpi-strip"></div>
+    <div class="canvas-wrap" id="canvas-wrap">
+      <canvas id="mainCanvas"></canvas>
+    </div>
+    <div class="chart-footer">
+      Click chart elements to edit · Drag <strong>plateau box</strong> to reposition · <strong>Apply</strong> to refresh
+    </div>
+  </div>
+
+  <!-- ── SETTINGS PANEL ── -->
+  <div class="settings-panel" id="settingsPanel">
+    <div class="panel-toggle" onclick="togglePanel()" id="panelToggle" title="Collapse panel">⟩</div>
+
+    <!-- Context tabs -->
+    <div class="panel-ctx-tabs" id="panelCtxTabs">
+      <div class="pctx-tab active" data-section="data"    onclick="switchCtx('data')">   <span class="pctx-icon">📍</span>Data</div>
+      <div class="pctx-tab"        data-section="labels"  onclick="switchCtx('labels')"> <span class="pctx-icon">📝</span>Labels</div>
+      <div class="pctx-tab"        data-section="style"   onclick="switchCtx('style')">  <span class="pctx-icon">🎨</span>Style</div>
+      <div class="pctx-tab"        data-section="text"    onclick="switchCtx('text')">   <span class="pctx-icon">🔤</span>Text</div>
+      <div class="pctx-tab"        data-section="overlay" onclick="switchCtx('overlay')"><span class="pctx-icon">📐</span>Overlay</div>
+      <div class="pctx-tab"        data-section="display" onclick="switchCtx('display')"><span class="pctx-icon">👁</span>Show</div>
+    </div>
+
+    <div class="panel-body" id="panelBody">
+      <!-- Context indicator — updates on chart type switch -->
+      <div id="panel-ctx-indicator" style="
+        display:flex;align-items:center;gap:7px;
+        padding:6px 10px;margin-bottom:10px;
+        background:#EBF5FF;border:1px solid #B8D8F0;
+        border-radius:8px;font-size:11px;color:var(--text2);
+        flex-shrink:0;
+      ">
+        <span id="panel-ctx-icon" style="font-size:14px;">📈</span>
+        <span>Showing settings for <strong id="panel-ctx-name" style="color:var(--blue);">Line</strong> chart</span>
+      </div>
+
+      <!-- ── DATA SECTION ── -->
+      <div class="panel-section active" id="sec-data">
+        <div class="sec">Data Points <span id="dp-count" style="background:var(--blue);color:#fff;font-size:9px;padding:1px 7px;border-radius:10px;font-weight:700;margin-left:4px;"></span></div>
+        <div class="dp-list" id="dp-list"></div>
+        <button class="add-btn" onclick="addDataPoint()">＋ Add Point</button>
+
+        <div class="sec" style="margin-top:14px;">KPI Cards</div>
+        <div id="kpi-edit-rows"></div>
+        <button class="add-btn" onclick="addKPI()">＋ Add KPI</button>
+      </div>
+
+      <!-- ── LABELS SECTION ── -->
+      <div class="panel-section" id="sec-labels">
+        <div class="sec">Chart Title &amp; Subtitle</div>
+        <div class="fg"><label>Title</label><input type="text" id="inp-title" value="Regression Cycle Duration"/></div>
+        <div class="fg"><label>Subtitle</label><input type="text" id="inp-subtitle" value="Continuous improvement drove an 8× reduction in cycle time"/></div>
+        <div class="sec">Axis Labels</div>
+        <div class="row2">
+          <div class="fg"><label>X Axis</label><input type="text" id="inp-xlabel" value="Release"/></div>
+          <div class="fg"><label>Y Axis</label><input type="text" id="inp-ylabel" value="Duration"/></div>
+        </div>
+        <div class="row2">
+          <div class="fg"><label>Y Suffix</label><input type="text" id="inp-yunit" value=" wks"/></div>
+          <div class="fg"><label>Y Prefix</label><input type="text" id="inp-yprefix" value=""/></div>
+        </div>
+        <div class="fg" data-show="line,area,scatter,step,bar"><label>X Label Style</label>
+          <select id="sty-xlabel-mode">
+            <option value="flat">Flat</option><option value="wrap">Wrapped 2-line</option>
+            <option value="30">Rotated 30°</option><option value="45" selected>Rotated 45°</option>
+            <option value="60">Rotated 60°</option><option value="90">Vertical 90°</option>
+          </select>
+        </div>
+        <div class="sec">Badges &amp; Callouts</div>
+        <div class="fg"><label>Headline Badge</label><input type="text" id="inp-badge" value="87.5% Reduction · 8× Faster"/></div>
+        <div class="row2">
+          <div class="fg"><label>Badge Color</label><div class="color-row"><input type="color" id="inp-badge-color" value="#7B2FBE"/><input type="text" id="inp-badge-color-t" value="#7B2FBE"/></div></div>
+          <div class="fg"><label>Badge BG</label><div class="color-row"><input type="color" id="inp-badge-bg" value="#2D1554"/><input type="text" id="inp-badge-bg-t" value="#2D1554"/></div></div>
+        </div>
+        <div class="row2">
+          <div class="fg"><label>Badge Size</label><input type="number" id="ts-badge-size" value="13" min="8" max="24"/></div>
+          <div class="fg"><label>Badge Weight</label><select id="ts-badge-weight"><option value="600">SemiBold</option><option value="700" selected>Bold</option><option value="800">ExtraBold</option></select></div>
+        </div>
+        <div class="fg"><label>Achievement Label</label><input type="text" id="inp-achieve" value="★ Target Achieved!"/></div>
+        <div class="row2">
+          <div class="fg"><label>Ach. Color</label><div class="color-row"><input type="color" id="ts-achieve-color" value="#7B2FBE"/><input type="text" id="ts-achieve-color-t" value="#7B2FBE"/></div></div>
+          <div class="fg"><label>Ach. BG</label><div class="color-row"><input type="color" id="ts-achieve-bg" value="#2D1554"/><input type="text" id="ts-achieve-bg-t" value="#2D1554"/></div></div>
+        </div>
+        <div class="row2">
+          <div class="fg"><label>Ach. Size</label><input type="number" id="ts-achieve-size" value="11" min="8" max="24"/></div>
+          <div class="fg"><label>Ach. Weight</label><select id="ts-achieve-weight"><option value="600">SemiBold</option><option value="700" selected>Bold</option></select></div>
+        </div>
+        <div class="row2">
+          <div class="fg"><label>Ach. X %</label><input type="number" id="ts-achieve-x" value="90" min="0" max="100"/></div>
+          <div class="fg"><label>Ach. Y %</label><input type="number" id="ts-achieve-y" value="88" min="0" max="100"/></div>
+        </div>
+        <div class="fg"><label>Start Callout Label</label><input type="text" id="inp-startlabel" value="Start"/></div>
+      </div>
+
+      <!-- ── STYLE SECTION ── -->
+      <div class="panel-section" id="sec-style">
+        <div class="sec">Chart Canvas</div>
+        <div class="row2">
+          <div class="fg"><label>Canvas BG</label><div class="color-row"><input type="color" id="sty-bg" value="#ffffff"/><input type="text" id="sty-bg-t" value="#ffffff"/></div></div>
+          <div class="fg"><label>Panel BG</label><div class="color-row"><input type="color" id="sty-panel-bg" value="#ffffff"/><input type="text" id="sty-panel-bg-t" value="#ffffff"/></div></div>
+        </div>
+        <div class="fg"><label>Grid Color</label><div class="color-row"><input type="color" id="sty-grid" value="#E2E8F0"/><input type="text" id="sty-grid-t" value="#E2E8F0"/></div></div>
+
+        <div class="sec" id="line-style-sec" data-show="line,area,scatter,step">Line / Scatter</div>
+        <div class="row2" id="line-style-row" data-show="line,area,scatter,step">
+          <div class="fg"><label>Line Width (px)</label><input type="number" id="sty-lw" value="3.5" step="0.5" min="1" max="10"/></div>
+          <div class="fg"><label>Dot Size (px)</label><input type="number" id="sty-dot" value="6" step="1" min="3" max="16"/></div>
+        </div>
+
+        <div class="sec" id="bar-style-sec" data-show="bar,hbar">Bar / Progress</div>
+        <div id="bar-style-rows" data-show="bar,hbar">
+          <div class="row2">
+            <div class="fg"><label>Corner Radius</label><input type="number" id="sty-bradius" value="5" step="1" min="0" max="20"/></div>
+            <div class="fg"><label>Min Col Width (px) <small style="color:var(--text3);font-weight:400;">— increase to spread bars/points apart</small></label><input type="number" id="sty-mincol" value="80" step="5" min="30" max="400"/></div>
+          </div>
+          <div class="row2" data-show="bar">
+            <div class="fg"><label>Bar Fill % <small style="color:var(--text3)">(spacing)</small></label><input type="number" id="sty-barfill" value="65" step="5" min="10" max="95"/></div>
+            <div class="fg"><label>Bar Max Width</label><input type="number" id="sty-barmaxw" value="120" step="10" min="20" max="400"/></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── TEXT STYLES SECTION ── -->
+      <div class="panel-section" id="sec-text">
+        <div class="sec">Chart Title</div>
+        <div class="row2">
+          <div class="fg"><label>Size</label><input type="number" id="ts-title-size" value="20" min="10" max="48"/></div>
+          <div class="fg"><label>Weight</label><select id="ts-title-weight"><option value="600">SemiBold</option><option value="700">Bold</option><option value="800" selected>ExtraBold</option></select></div>
+        </div>
+        <div class="row2">
+          <div class="fg"><label>Color</label><div class="color-row"><input type="color" id="ts-title-color" value="#1C2B3A"/><input type="text" id="ts-title-color-t" value="#1C2B3A"/></div></div>
+          <div class="fg"><label>Font</label><select id="ts-title-font"><option value="'DM Sans'" selected>DM Sans</option><option value="Georgia">Georgia</option><option value="Impact">Impact</option></select></div>
+        </div>
+        <div class="sec">Subtitle</div>
+        <div class="row2">
+          <div class="fg"><label>Size</label><input type="number" id="ts-sub-size" value="12" min="8" max="24"/></div>
+          <div class="fg"><label>Color</label><div class="color-row"><input type="color" id="ts-sub-color" value="#8A98AA"/><input type="text" id="ts-sub-color-t" value="#8A98AA"/></div></div>
+        </div>
+        <div class="sec">Axis Titles</div>
+        <div class="row2">
+          <div class="fg"><label>Size</label><input type="number" id="ts-axis-size" value="12" min="7" max="20"/></div>
+          <div class="fg"><label>Color</label><div class="color-row"><input type="color" id="ts-axis-color" value="#8A98AA"/><input type="text" id="ts-axis-color-t" value="#8A98AA"/></div></div>
+        </div>
+        <div class="sec">X Tick Labels</div>
+        <div class="row2">
+          <div class="fg"><label>Size</label><input type="number" id="ts-xtick-size" value="12" min="7" max="20"/></div>
+          <div class="fg"><label>Weight</label><select id="ts-xtick-weight"><option value="600">SemiBold</option><option value="700" selected>Bold</option></select></div>
+        </div>
+        <div class="sec">Y Tick Labels</div>
+        <div class="row2">
+          <div class="fg"><label>Size</label><input type="number" id="ts-ytick-size" value="12" min="7" max="20"/></div>
+          <div class="fg"><label>Color</label><div class="color-row"><input type="color" id="ts-ytick-color" value="#8A98AA"/><input type="text" id="ts-ytick-color-t" value="#8A98AA"/></div></div>
+        </div>
+        <div class="sec">Primary Data Labels</div>
+        <div class="row2">
+          <div class="fg"><label>Size</label><input type="number" id="ts-dlbl-size" value="11" min="7" max="18"/></div>
+          <div class="fg"><label>Weight</label><select id="ts-dlbl-weight"><option value="600">SemiBold</option><option value="700" selected>Bold</option></select></div>
+        </div>
+        <div class="sec">Secondary Data Labels</div>
+        <div class="row2">
+          <div class="fg"><label>Size</label><input type="number" id="ts-slbl-size" value="10" min="7" max="18"/></div>
+          <div class="fg"><label>Offset (px)</label><input type="number" id="ts-slbl-offset" value="36" min="10" max="120"/></div>
+        </div>
+        <div class="row2">
+          <div class="fg"><label>BG</label><div class="color-row"><input type="color" id="ts-slbl-bg" value="#1C2B3A"/><input type="text" id="ts-slbl-bg-t" value="#1C2B3A"/></div></div>
+          <div class="fg"><label>Text</label><div class="color-row"><input type="color" id="ts-slbl-fg" value="#FFFFFF"/><input type="text" id="ts-slbl-fg-t" value="#FFFFFF"/></div></div>
+        </div>
+        <div class="fg"><label>Border</label><div class="color-row"><input type="color" id="ts-slbl-border" value="#1C2B3A"/><input type="text" id="ts-slbl-border-t" value="#1C2B3A"/></div></div>
+      </div>
+
+      <!-- ── OVERLAY SECTION ── -->
+      <div class="panel-section" id="sec-overlay">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+          <div class="sec" style="margin:0;border:none;padding:0;">Plateau Boxes</div>
+          <button class="add-btn" style="width:auto;margin:0;padding:4px 12px;font-size:11.5px;" onclick="addPlateau()">＋ Add</button>
+        </div>
+        <div id="plateau-list" style="display:flex;flex-direction:column;gap:8px;"></div>
+        <p style="font-size:10.5px;color:var(--text3);margin-top:10px;line-height:1.6;">
+          Each box is independently <strong>draggable</strong> and <strong>resizable</strong> on the chart.<br>
+          Drag edges or corners to resize. Hit <strong>Apply</strong> to reposition from scratch.
+        </p>
+      </div>
+
+      <!-- ── DISPLAY SECTION ── -->
+      <div class="panel-section" id="sec-display">
+        <div class="sec">Visibility</div>
+        <div class="tog-row"><span class="tog-lbl">Primary Data Labels</span><label class="sw"><input type="checkbox" id="tog-labels" checked/><span class="sl"></span></label></div>
+        <div class="tog-row"><span class="tog-lbl">Secondary Data Labels</span><label class="sw"><input type="checkbox" id="tog-slabels" checked/><span class="sl"></span></label></div>
+        <div class="tog-row" data-show="line,area,scatter,step,bar"><span class="tog-lbl">Data Dots</span><label class="sw"><input type="checkbox" id="tog-dots" checked/><span class="sl"></span></label></div>
+        <div class="tog-row" data-show="line"><span class="tog-lbl">Trend Arrow</span><label class="sw"><input type="checkbox" id="tog-trend" checked/><span class="sl"></span></label></div>
+        <div class="tog-row" data-show="line,area,step"><span class="tog-lbl">Area Fill</span><label class="sw"><input type="checkbox" id="tog-fill" checked/><span class="sl"></span></label></div>
+        <div class="tog-row" data-show="line,area,step"><span class="tog-lbl">Smooth Curve</span><label class="sw"><input type="checkbox" id="tog-smooth" checked/><span class="sl"></span></label></div>
+        <div class="tog-row"><span class="tog-lbl">KPI Cards</span><label class="sw"><input type="checkbox" id="tog-kpi" checked/><span class="sl"></span></label></div>
+        <div class="tog-row"><span class="tog-lbl">Headline Badge</span><label class="sw"><input type="checkbox" id="tog-badge" checked/><span class="sl"></span></label></div>
+        <div class="tog-row"><span class="tog-lbl">Achievement Badge</span><label class="sw"><input type="checkbox" id="tog-achieve" checked/><span class="sl"></span></label></div>
+        <div class="tog-row" data-show="line,area,step,bar,scatter"><span class="tog-lbl">Start Callout</span><label class="sw"><input type="checkbox" id="tog-start" checked/><span class="sl"></span></label></div>
+      </div>
+
+    </div><!-- /panel-body -->
+  </div><!-- /settings-panel -->
+
+</div><!-- /workspace -->
+
+<!-- ═══ PRESET MODAL ═══ -->
+<div class="modal-overlay hidden" id="presetModal">
+  <div class="pmodal">
+    <div class="modal-hdr">
+      <h2>💾 Presets</h2>
+      <button class="modal-close" onclick="$('presetModal').classList.add('hidden')">✕</button>
+    </div>
+    <div class="pmodal-body">
+      <div>
+        <div class="sec" style="margin-bottom:8px;">Save Current Chart</div>
+        <div class="preset-save-row">
+          <input type="text" id="preset-name-inp" placeholder="Name e.g. Regression Testing" maxlength="60"/>
+          <button class="btn-save-preset" onclick="savePreset()">Save</button>
+        </div>
+      </div>
+      <div>
+        <div class="sec" style="margin-bottom:8px;">Saved Presets</div>
+        <div class="preset-list" id="preset-list"></div>
+      </div>
+      <div class="divider-label">IMPORT</div>
+      <div class="json-row">
+        <button class="btn-json" onclick="exportJSON()">⬇ Export JSON</button>
+        <button class="btn-json" onclick="$('json-file-inp').click()">⬆ Import JSON</button>
+        <button class="btn-json" style="color:var(--orange);border-color:var(--orange);" onclick="$('html-file-inp').click()" title="Import settings from an old ChartPro HTML file">📄 Import HTML</button>
+      </div>
+      <input type="file" id="json-file-inp" accept=".json" style="display:none" onchange="importJSONFile(this)"/>
+      <input type="file" id="html-file-inp" accept=".html" style="display:none" onchange="importHTMLFile(this)"/>
+      <p style="font-size:11px;color:var(--text3);line-height:1.5;">
+        <strong style="color:var(--orange);">Import HTML</strong> — load settings &amp; data from any older ChartPro file directly.
+      </p>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ EXPORT MODAL ═══ -->
+<div class="modal-overlay hidden" id="exportModal">
+  <div class="modal">
+    <div class="modal-hdr">
+      <h2>📤 Export Chart</h2>
+      <button class="modal-close" onclick="$('exportModal').classList.add('hidden')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="modal-preview">
+        <canvas id="exportPreviewCanvas"></canvas>
+        <p style="font-size:11px;color:var(--text3);text-align:center;">Drag blue handles to crop</p>
+      </div>
+      <div class="modal-controls">
+        <div class="sec">Crop</div>
+        <div class="fg"><label>Left (px)</label><input type="number" id="crop-x" value="0" min="0"/></div>
+        <div class="fg"><label>Top (px)</label><input type="number" id="crop-y" value="0" min="0"/></div>
+        <div class="fg"><label>Width (px)</label><input type="number" id="crop-w" value="0" min="10"/></div>
+        <div class="fg"><label>Height (px)</label><input type="number" id="crop-h" value="0" min="10"/></div>
+        <button style="width:100%;padding:6px;background:var(--surface3);border:1px solid var(--border);border-radius:6px;font-size:11.5px;font-weight:600;cursor:pointer;color:var(--text2);font-family:inherit;margin-top:4px;" onclick="resetCrop()">↺ Reset</button>
+        <div class="sec" style="margin-top:10px;">Scale</div>
+        <div class="fg"><label>PNG Scale (1–4×)</label><input type="number" id="sty-export-scale" value="2" min="1" max="4" step="0.5"/></div>
+        <div class="crop-info">SVG embeds full-res image in scalable container. Perfect for Figma, Illustrator &amp; PowerPoint.</div>
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-dl btn-dl-cancel" onclick="$('exportModal').classList.add('hidden')">Cancel</button>
+      <button class="btn-dl btn-dl-svg"    onclick="downloadSVG()">⬇ SVG</button>
+      <button class="btn-dl btn-dl-png"    onclick="downloadCroppedPNG()">⬇ PNG</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ═══════════════════════════════════════════════════════════════════════
+// UTILITIES
+// ═══════════════════════════════════════════════════════════════════════
+const $=id=>document.getElementById(id);
+function hexToRgb(h){return{r:parseInt(h.slice(1,3),16),g:parseInt(h.slice(3,5),16),b:parseInt(h.slice(5,7),16)};}
+function rgba(h,a){const{r,g,b}=hexToRgb(h);return`rgba(${r},${g},${b},${a})`;}
+function lerp(a,b,t){return a+(b-a)*t;}
+function lerpCol(c1,c2,t){const a=hexToRgb(c1),b=hexToRgb(c2);return`rgb(${Math.round(lerp(a.r,b.r,t))},${Math.round(lerp(a.g,b.g,t))},${Math.round(lerp(a.b,b.b,t))})`;}
+function escHtml(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+
+function catmull(pts){
+  if(pts.length<2)return pts;
+  const out=[];
+  for(let i=0;i<pts.length-1;i++){
+    const p0=pts[Math.max(i-1,0)],p1=pts[i],p2=pts[i+1],p3=pts[Math.min(i+2,pts.length-1)];
+    for(let t=0;t<=1;t+=0.04){
+      const t2=t*t,t3=t2*t;
+      out.push({
+        x:.5*((2*p1.x)+(-p0.x+p2.x)*t+(2*p0.x-5*p1.x+4*p2.x-p3.x)*t2+(-p0.x+3*p1.x-3*p2.x+p3.x)*t3),
+        y:.5*((2*p1.y)+(-p0.y+p2.y)*t+(2*p0.y-5*p1.y+4*p2.y-p3.y)*t2+(-p0.y+3*p1.y-3*p2.y+p3.y)*t3)
+      });
+    }
+  }
+  out.push(pts[pts.length-1]);
+  return out;
+}
+
+function wireColorRow(pickerId,textId){
+  const pick=$(pickerId),txt=$(textId);
+  if(!pick||!txt)return;
+  pick.addEventListener('input',()=>{txt.value=pick.value;});
+  txt.addEventListener('input',()=>{if(/^#[0-9A-Fa-f]{6}$/.test(txt.value))pick.value=txt.value;});
+}
+
+// ═══════════════════════════════════════════════════════════════════════
+// PLATEAU STATE
+// ═══════════════════════════════════════════════════════════════════════
+// ═══════════════════════════════════════════════════════════════════════
+// PLATEAU STATE — array of independent plateau boxes
+// ═══════════════════════════════════════════════════════════════════════
+function makePlateau(overrides={}){
+  return{
+    id:'plt_'+Date.now()+'_'+Math.random().toString(36).slice(2,5),
+    label:'Plateau',
+    lblSize:11, lblWeight:'700', lblColor:'#C97B30',
+    fill:'#F4C430', opacity:0.12,
+    border:'#F4A261', bopacity:0.50,
+    x:0, y:0, w:130, h:60,
+    // Label position within box: offset from centre (-1=left/top, 0=centre, 1=right/bottom)
+    lblOffsetX:0, lblOffsetY:0,
+    lblAlign:'center',   // 'left' | 'center' | 'right'
+    lblVAlign:'middle',  // 'top' | 'middle' | 'bottom'
+    ready:false,
+    dragging:false, resizing:false, lblDragging:false,
+    dragOX:0, dragOY:0, resizeEdge:'',
+    ...overrides
+  };
+}
+let PLATEAUS=[ makePlateau({label:'Stabilisation Plateau'}) ];
+let activePlaIdx=-1; // which plateau is being dragged/resized
+const RESIZE_HIT=10;
+
+// ═══════════════════════════════════════════════════════════════════════
+// WORKSPACE TABS
+// ═══════════════════════════════════════════════════════════════════════
+let tabs=[];
+let activeTabId=null;
+let chartType='line';
+let panelCollapsed=false;
+
+const TAB_ICONS={line:'📈',bar:'📊',area:'🏔',scatter:'⊹',step:'⌐',hbar:'≡'};
+
+function createTab(name,type='line',state=null){
+  const id='tab_'+Date.now()+'_'+Math.random().toString(36).slice(2,7);
+  const tab={id,name,type,state:state||getDefaultState()};
+  tabs.push(tab);
+  return tab;
+}
+
+function getDefaultState(){
+  return{
+    points:[
+      {x:'Data 1',v:8,p:'2 Months',s:'R1 Baseline',c:'#E63946'},
+      {x:'Data 2',v:6,p:'1–2 Months',s:'',c:'#F4722B'},
+      {x:'Data 3',v:4,p:'1 Month',s:'',c:'#F4A261'},
+      {x:'Data 4',v:4,p:'4 Weeks',s:'Plateau Start',c:'#F4C430'},
+      {x:'Data 5',v:4,p:'4 Weeks',s:'',c:'#A8C957'},
+      {x:'Data 6',v:3,p:'3 Weeks',s:'',c:'#52B788'},
+      {x:'Data 7',v:2.5,p:'2–3 Weeks',s:'',c:'#2196F3'},
+      {x:'Data 8',v:2,p:'2 Weeks',s:'',c:'#1565C0'},
+      {x:'Data 9',v:2,p:'2 Weeks',s:'',c:'#6A1B9A'},
+      {x:'Data 10',v:1.5,p:'1.5 Weeks',s:'',c:'#880E4F'},
+      {x:'Data 11',v:1.5,p:'1.5 Weeks',s:'',c:'#4E342E'},
+      {x:'Data 12',v:1,p:'1 Week',s:'',c:'#37474F'},
+      {x:'Data 13',v:1,p:'1 Week',s:'★ Target!',c:'#7B2FBE'},
+    ],
+    kpis:[
+      {val:'8 Wks',lbl:'Baseline',col:'#E63946'},
+      {val:'1 Wk',lbl:'Achieved',col:'#7B2FBE'},
+      {val:'87.5%',lbl:'Reduction',col:'#0080BA'},
+      {val:'8×',lbl:'Faster',col:'#FF9901'},
+    ],
+    fields:{}
+  };
+}
+
+function renderTabs(){
+  const bar=$('tabbar');
+  const addBtn=bar.querySelector('.tab-add');
+  bar.querySelectorAll('.ws-tab').forEach(t=>t.remove());
+  tabs.forEach(tab=>{
+    const el=document.createElement('div');
+    el.className='ws-tab'+(tab.id===activeTabId?' active':'');
+    el.innerHTML=`<span class="tab-icon">${TAB_ICONS[tab.type]||'📈'}</span><span class="tab-name">${escHtml(tab.name)}</span>${tabs.length>1?`<button class="tab-close" onclick="removeTab('${tab.id}',event)">×</button>`:''}`;
+    el.addEventListener('click',()=>switchTab(tab.id));
+    bar.insertBefore(el,addBtn);
+  });
+}
+
+function switchTab(id){
+  if(activeTabId===id)return;
+  // Save current state
+  if(activeTabId){
+    const cur=tabs.find(t=>t.id===activeTabId);
+    if(cur) cur.state=collectState();
+    cur.type=chartType;
+  }
+  activeTabId=id;
+  PLATEAUS.forEach(p=>p.ready=false);
+  const tab=tabs.find(t=>t.id===id);
+  if(!tab)return;
+  chartType=tab.type;
+  // Update chart type tabs
+  document.querySelectorAll('.ct-tab').forEach(b=>b.classList.toggle('active',b.dataset.type===chartType));
+  restoreState(tab.state);
+  renderTabs();
+  setTimeout(applyAll,50);
+}
+
+function addTab(){
+  const name='Chart '+(tabs.length+1);
+  const tab=createTab(name);
+  activeTabId=tab.id;
+  PLATEAUS.forEach(p=>p.ready=false);
+  renderTabs();
+  buildDataCards();
+  rebuildKPI();
+  setTimeout(applyAll,50);
+}
+
+function removeTab(id,e){
+  e.stopPropagation();
+  if(tabs.length<=1)return;
+  if(!confirm('Remove this chart tab?'))return;
+  const idx=tabs.findIndex(t=>t.id===id);
+  tabs.splice(idx,1);
+  if(activeTabId===id){
+    activeTabId=tabs[Math.min(idx,tabs.length-1)].id;
+    PLATEAUS.forEach(p=>p.ready=false);
+    const tab=tabs.find(t=>t.id===activeTabId);
+    if(tab){chartType=tab.type;restoreState(tab.state);}
+    renderTabs();
+    setTimeout(applyAll,50);
+  } else {
+    renderTabs();
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════════════
+// PANEL — collapse & context switching
+// ═══════════════════════════════════════════════════════════════════════
+function togglePanel(){
+  panelCollapsed=!panelCollapsed;
+  const panel=$('settingsPanel');
+  panel.classList.toggle('collapsed',panelCollapsed);
+  $('panelToggle').textContent=panelCollapsed?'⟨':'⟩';
+  $('panelCtxTabs').style.display=panelCollapsed?'none':'flex';
+  $('panelBody').style.display=panelCollapsed?'none':'block';
+  setTimeout(()=>drawChart(),200);
+}
+
+function switchCtx(section){
+  document.querySelectorAll('.pctx-tab').forEach(t=>t.classList.toggle('active',t.dataset.section===section));
+  document.querySelectorAll('.panel-section').forEach(s=>s.classList.toggle('active',s.id==='sec-'+section));
+  // Update chart-type-relevant visibility
+  updateStyleSectionVisibility();
+}
+
+function focusPanel(section){
+  if(panelCollapsed) togglePanel();
+  switchCtx(section);
+}
+
+function updateStyleSectionVisibility(){
+  // Apply data-show filtering across ALL panels
+  document.querySelectorAll('[data-show]').forEach(el=>{
+    const allowed=el.dataset.show.split(',').map(s=>s.trim());
+    el.style.display=allowed.includes(chartType)?'':'none';
+  });
+
+  // Update the context indicator badge
+  const TYPE_META={
+    line:   {icon:'📈',name:'Line'},
+    area:   {icon:'🏔',name:'Area'},
+    scatter:{icon:'⊹',name:'Scatter'},
+    step:   {icon:'⌐',name:'Step'},
+    bar:    {icon:'📊',name:'Bar'},
+    hbar:   {icon:'≡',name:'Progress'},
+  };
+  const meta=TYPE_META[chartType]||{icon:'📈',name:'Chart'};
+  const icon=$('panel-ctx-icon'),name=$('panel-ctx-name');
+  if(icon) icon.textContent=meta.icon;
+  if(name) name.textContent=meta.name;
+}
+
+// ═══════════════════════════════════════════════════════════════════════
+// PLATEAU MANAGEMENT
+// ═══════════════════════════════════════════════════════════════════════
+function renderPlateauList(){
+  const list=$('plateau-list');
+  if(!list) return;
+  list.innerHTML='';
+  PLATEAUS.forEach((pla,i)=>{
+    const card=document.createElement('div');
+    card.className='pla-card'+(pla._open?' open':'');
+    card.innerHTML=`
+      <div class="pla-card-hdr" onclick="togglePlaCard(${i})">
+        <div class="pla-swatch" id="pla-swatch-${i}" style="background:${pla.fill};"></div>
+        <span class="pla-name">${escHtml(pla.label||'Plateau '+(i+1))}</span>
+        <button class="pla-vis-toggle${pla.hidden?' hidden-eye':''}" onclick="togglePlaVisible(${i},event)" title="Show/hide">${pla.hidden?'🙈':'👁'}</button>
+        <button class="pla-rm" onclick="removePlateau(${i},event)" title="Delete">×</button>
+        <span class="pla-arr">▼</span>
+      </div>
+      <div class="pla-body">
+        <div class="fg"><label>Label Text</label>
+          <input type="text" value="${escHtml(pla.label)}" oninput="updatePla(${i},'label',this.value)"/>
+        </div>
+        <div class="row2">
+          <div class="fg"><label>Label Size</label><input type="number" value="${pla.lblSize}" min="7" max="20" oninput="updatePla(${i},'lblSize',+this.value)"/></div>
+          <div class="fg"><label>Weight</label>
+            <select onchange="updatePla(${i},'lblWeight',this.value)">
+              <option value="600" ${pla.lblWeight==='600'?'selected':''}>SemiBold</option>
+              <option value="700" ${pla.lblWeight==='700'?'selected':''}>Bold</option>
+              <option value="800" ${pla.lblWeight==='800'?'selected':''}>ExtraBold</option>
+            </select>
+          </div>
+        </div>
+        <div class="row2">
+          <div class="fg"><label>H Align</label>
+            <select onchange="updatePla(${i},'lblAlign',this.value)">
+              <option value="left"   ${pla.lblAlign==='left'  ?'selected':''}>Left</option>
+              <option value="center" ${pla.lblAlign==='center'?'selected':''}>Centre</option>
+              <option value="right"  ${pla.lblAlign==='right' ?'selected':''}>Right</option>
+            </select>
+          </div>
+          <div class="fg"><label>V Align</label>
+            <select onchange="updatePla(${i},'lblVAlign',this.value)">
+              <option value="top"    ${pla.lblVAlign==='top'   ?'selected':''}>Top</option>
+              <option value="middle" ${pla.lblVAlign==='middle'?'selected':''}>Middle</option>
+              <option value="bottom" ${pla.lblVAlign==='bottom'?'selected':''}>Bottom</option>
+            </select>
+          </div>
+        </div>
+        <div class="row2">
+          <div class="fg"><label>Label X Nudge (px)</label>
+            <input type="number" value="${pla.lblOffsetX||0}" step="2" oninput="updatePla(${i},'lblOffsetX',+this.value)"/>
+          </div>
+          <div class="fg"><label>Label Y Nudge (px)</label>
+            <input type="number" value="${pla.lblOffsetY||0}" step="2" oninput="updatePla(${i},'lblOffsetY',+this.value)"/>
+          </div>
+        </div>
+        <p style="font-size:10px;color:var(--blue);background:#EBF5FF;border-radius:6px;padding:6px 8px;line-height:1.5;margin-bottom:8px;">
+          💡 Hold <strong>Alt</strong> and drag the label text on the chart to reposition it freely within the box.
+        </p>
+        <div class="row2">
+          <div class="fg"><label>Fill Color</label>
+            <input type="color" value="${pla.fill}" oninput="updatePla(${i},'fill',this.value);$('pla-swatch-${i}').style.background=this.value"/>
+          </div>
+          <div class="fg"><label>Fill Opacity %</label>
+            <input type="number" value="${Math.round(pla.opacity*100)}" min="0" max="100" oninput="updatePla(${i},'opacity',+this.value/100)"/>
+          </div>
+        </div>
+        <div class="row2">
+          <div class="fg"><label>Border Color</label>
+            <input type="color" value="${pla.border}" oninput="updatePla(${i},'border',this.value)"/>
+          </div>
+          <div class="fg"><label>Border Opacity %</label>
+            <input type="number" value="${Math.round(pla.bopacity*100)}" min="0" max="100" oninput="updatePla(${i},'bopacity',+this.value/100)"/>
+          </div>
+        </div>
+        <div class="fg"><label>Label Color</label>
+          <input type="color" value="${pla.lblColor}" oninput="updatePla(${i},'lblColor',this.value)"/>
+        </div>
+        <button style="width:100%;padding:5px;margin-top:4px;background:#FFF3CD;border:1px solid #F4C430;border-radius:6px;font-size:11px;font-weight:600;cursor:pointer;color:#856404;" onclick="resetPlaPos(${i})">↺ Reset Position</button>
+      </div>`;
+    list.appendChild(card);
+  });
+}
+
+function togglePlaCard(i){
+  PLATEAUS[i]._open=!PLATEAUS[i]._open;
+  renderPlateauList();
+}
+
+function updatePla(i,key,val){
+  if(PLATEAUS[i]) PLATEAUS[i][key]=val;
+  drawChart();
+}
+
+function togglePlaVisible(i,e){
+  e.stopPropagation();
+  PLATEAUS[i].hidden=!PLATEAUS[i].hidden;
+  renderPlateauList();
+  drawChart();
+}
+
+function removePlateau(i,e){
+  e.stopPropagation();
+  if(PLATEAUS.length<=1){alert('Need at least one plateau box. Use the eye icon to hide it instead.');return;}
+  PLATEAUS.splice(i,1);
+  renderPlateauList();
+  drawChart();
+}
+
+function addPlateau(){
+  PLATEAUS.push(makePlateau({
+    label:'Plateau '+(PLATEAUS.length+1),
+    fill:['#4FC3F7','#A5D6A7','#CE93D8','#FFAB91','#80CBC4'][PLATEAUS.length%5],
+    border:['#0288D1','#388E3C','#7B1FA2','#E64A19','#00695C'][PLATEAUS.length%5],
+    lblColor:['#01579B','#1B5E20','#4A148C','#BF360C','#004D40'][PLATEAUS.length%5],
+    _open:true,
+  }));
+  focusPanel('overlay');
+  renderPlateauList();
+  drawChart();
+}
+
+function resetPlaPos(i){
+  PLATEAUS[i].ready=false;
+  drawChart();
+}
+function buildDataCards(){
+  const state=tabs.find(t=>t.id===activeTabId)?.state;
+  const pts=state?.points||getDefaultState().points;
+  $('dp-list').innerHTML='';
+  pts.forEach((pt,i)=>appendCard(pt,i));
+  updateDpCount();
+}
+
+function appendCard(pt,idx){
+  const list=$('dp-list');
+  const card=document.createElement('div');
+  card.className='dp-card';
+  card.innerHTML=`
+    <div class="dp-card-hdr">
+      <div class="dp-swatch" style="background:${pt.c}" onclick="this.nextElementSibling.click()"></div>
+      <input type="color" value="${pt.c}" style="display:none" onchange="this.previousElementSibling.style.background=this.value"/>
+      <span class="dp-idx">Point ${idx+1}</span>
+      <button class="dp-rm" onclick="removeCard(this)">×</button>
+    </div>
+    <div class="dp-grid">
+      <div><span class="dp-lbl">X Label</span><input type="text" class="dp-xlabel" value="${escHtml(pt.x)}" placeholder="Label"/></div>
+      <div><span class="dp-lbl">Value</span><input type="number" class="dp-value" value="${pt.v}" step="0.5" min="0"/></div>
+    </div>
+    <div class="dp-grid2">
+      <div><span class="dp-lbl">Primary Label</span><input type="text" class="dp-primary" value="${escHtml(pt.p)}" placeholder="e.g. 2 Months"/></div>
+      <div><span class="dp-lbl">Secondary Label</span><input type="text" class="dp-secondary" value="${escHtml(pt.s)}" placeholder="optional"/></div>
+    </div>`;
+  // Click card → jump to data section
+  card.addEventListener('click',e=>{
+    if(e.target.tagName==='INPUT'||e.target.tagName==='BUTTON') return;
+    focusPanel('data');
+    document.querySelectorAll('.dp-card').forEach(c=>c.classList.remove('selected'));
+    card.classList.add('selected');
+  });
+  list.appendChild(card);
+}
+
+function removeCard(btn){
+  if(document.querySelectorAll('.dp-card').length<=2){alert('Need at least 2 points.');return;}
+  btn.closest('.dp-card').remove();
+  document.querySelectorAll('.dp-card').forEach((c,i)=>c.querySelector('.dp-idx').textContent=`Point ${i+1}`);
+  updateDpCount();
+}
+
+function addDataPoint(){
+  const idx=document.querySelectorAll('.dp-card').length;
+  appendCard({x:'New Point',v:2,p:'Label',s:'',c:'#0080BA'},idx);
+  updateDpCount();
+}
+function updateDpCount(){$('dp-count').textContent=document.querySelectorAll('.dp-card').length;}
+
+// ═══════════════════════════════════════════════════════════════════════
+// READ DATA
+// ═══════════════════════════════════════════════════════════════════════
+function getData(){
+  const releases=[],values=[],primary=[],secondary=[],colors=[];
+  document.querySelectorAll('.dp-card').forEach(card=>{
+    releases.push(card.querySelector('.dp-xlabel').value.trim()||'?');
+    values.push(Math.max(0,parseFloat(card.querySelector('.dp-value').value)||0));
+    primary.push(card.querySelector('.dp-primary').value.trim());
+    secondary.push(card.querySelector('.dp-secondary').value.trim());
+    const pick=card.querySelector('input[type=color]');
+    colors.push(pick?pick.value:'#0080BA');
+  });
+  return{releases,values,primary,secondary,colors};
+}
+
+function getTS(){
+  return{
+    title:{size:+$('ts-title-size').value,weight:$('ts-title-weight').value,color:$('ts-title-color').value,font:$('ts-title-font').value},
+    sub  :{size:+$('ts-sub-size').value,color:$('ts-sub-color').value},
+    axis :{size:+$('ts-axis-size').value,color:$('ts-axis-color').value},
+    xtick:{size:+$('ts-xtick-size').value,weight:$('ts-xtick-weight').value},
+    ytick:{size:+$('ts-ytick-size').value,color:$('ts-ytick-color').value},
+    dlbl :{size:+$('ts-dlbl-size').value,weight:$('ts-dlbl-weight').value},
+    slbl :{size:+$('ts-slbl-size').value,weight:'600',bg:$('ts-slbl-bg').value,fg:$('ts-slbl-fg').value,border:$('ts-slbl-border').value,offset:+$('ts-slbl-offset').value||36},
+    badge:{size:+$('ts-badge-size').value,weight:$('ts-badge-weight').value},
+    achieve:{size:+$('ts-achieve-size').value,weight:$('ts-achieve-weight').value,color:$('ts-achieve-color').value,bg:$('ts-achieve-bg').value,x:+$('ts-achieve-x').value,y:+$('ts-achieve-y').value},
+  };
+}
+function getSty(){
+  return{
+    lw      :parseFloat($('sty-lw').value)||3.5,
+    dot     :parseFloat($('sty-dot').value)||6,
+    bradius :parseFloat($('sty-bradius').value)||5,
+    mincol  :parseFloat($('sty-mincol').value)||80,
+    barfill :(parseFloat($('sty-barfill').value)||65)/100,
+    barmaxw :parseFloat($('sty-barmaxw').value)||120,
+    bg      :$('sty-bg').value||'#ffffff',
+    grid    :$('sty-grid').value||'#E2E8F0',
+    xlabelMode:$('sty-xlabel-mode').value||'45',
+  };
+}
+function getPlateau(){ return {}; } // legacy stub — plateau data now in PLATEAUS array
+
+// ═══════════════════════════════════════════════════════════════════════
+// DRAWING HELPERS
+// ═══════════════════════════════════════════════════════════════════════
+function drawPill(ctx,text,cx,cy,fg,bg,border,fs,weight,padX,padY){
+  ctx.font=`${weight} ${fs}px DM Sans`;
+  const tw=ctx.measureText(text).width;
+  const bw=tw+padX*2,bh=padY*2+fs*1.15;
+  ctx.beginPath();
+  if(ctx.roundRect)ctx.roundRect(cx-bw/2,cy-bh/2,bw,bh,bh/2);
+  else ctx.rect(cx-bw/2,cy-bh/2,bw,bh);
+  ctx.fillStyle=bg;ctx.fill();
+  ctx.strokeStyle=border;ctx.lineWidth=1.5;ctx.stroke();
+  ctx.fillStyle=fg;ctx.textAlign='center';ctx.textBaseline='middle';
+  ctx.fillText(text,cx,cy);
+}
+
+function measureXLabelH(releases,xtickSize,mode){
+  const tmp=document.createElement('canvas').getContext('2d');
+  tmp.font=`700 ${xtickSize}px DM Sans`;
+  let maxW=0;
+  releases.forEach(r=>{maxW=Math.max(maxW,tmp.measureText(r).width);});
+  if(mode==='flat'){
+    // Always reserve 2-row stagger height so bottom padding is correct
+    // whether or not stagger kicks in
+    return (xtickSize+2)*2+14;
+  }
+  if(mode==='wrap')return xtickSize*2+6;
+  const deg=Math.min(Math.max(parseInt(mode)||45,1),90);
+  const rad=deg*Math.PI/180;
+  return Math.ceil(Math.sin(rad)*maxW+Math.cos(rad)*xtickSize)+8;
+}
+
+function drawXLabels(ctx,releases,colors,ts,mode,pxXFn,PH,PAD,LPAD){
+  const baseY=PAD.top+PH+10;
+  ctx.font=`${ts.xtick.weight} ${ts.xtick.size}px DM Sans`;
+  const n=releases.length;
+
+  if(mode==='flat'){
+    // Measure the widest label and the column gap
+    let maxLblW=0;
+    releases.forEach(r=>{maxLblW=Math.max(maxLblW,ctx.measureText(r).width);});
+    const colGap=n>1?Math.abs(pxXFn(1)-pxXFn(0)):999;
+
+    if(maxLblW<=colGap*0.92){
+      // Labels fit — draw centred, clipped to slot
+      releases.forEach((r,i)=>{
+        ctx.save();
+        ctx.beginPath();ctx.rect(pxXFn(i)-colGap/2,baseY-2,colGap,ts.xtick.size+8);ctx.clip();
+        ctx.fillStyle=colors[i]||'#333';ctx.textAlign='center';ctx.textBaseline='top';
+        ctx.fillText(r,pxXFn(i),baseY);
+        ctx.restore();
+      });
+    } else {
+      // Labels too wide — auto-stagger: even rows at baseY, odd at baseY + lineH + 4
+      const lineH=ts.xtick.size+2;
+      releases.forEach((r,i)=>{
+        const stagger=(i%2===1)?lineH+4:0;
+        ctx.fillStyle=colors[i]||'#333';ctx.textAlign='center';ctx.textBaseline='top';
+        ctx.fillText(r,pxXFn(i),baseY+stagger);
+        // Draw a short tick line for staggered labels so the connection is clear
+        if(stagger>0){
+          ctx.strokeStyle=rgba(colors[i]||'#333',.3);ctx.lineWidth=1;ctx.setLineDash([2,2]);
+          ctx.beginPath();ctx.moveTo(pxXFn(i),baseY);ctx.lineTo(pxXFn(i),baseY+stagger-2);
+          ctx.stroke();ctx.setLineDash([]);
+        }
+      });
+    }
+
+  } else if(mode==='wrap'){
+    releases.forEach((r,i)=>{
+      const words=r.split(' ');
+      let l1,l2;
+      if(words.length>=2){const m=Math.ceil(words.length/2);l1=words.slice(0,m).join(' ');l2=words.slice(m).join(' ');}
+      else{const m=Math.ceil(r.length/2);l1=r.slice(0,m);l2=r.slice(m);}
+      ctx.fillStyle=colors[i]||'#333';ctx.textAlign='center';ctx.textBaseline='top';
+      ctx.fillText(l1,pxXFn(i),baseY);
+      if(l2)ctx.fillText(l2,pxXFn(i),baseY+ts.xtick.size+3);
+    });
+
+  } else {
+    // Rotated — right-anchored at tick, sweeps upper-left, no collision possible
+    const deg=Math.min(Math.max(parseInt(mode)||45,1),90);
+    const rad=-deg*Math.PI/180;
+    releases.forEach((r,i)=>{
+      ctx.save();ctx.translate(pxXFn(i),baseY);ctx.rotate(rad);
+      ctx.fillStyle=colors[i]||'#333';ctx.textAlign='right';ctx.textBaseline='middle';
+      ctx.fillText(r,-4,0);ctx.restore();
+    });
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════════════
+// HBAR RENDERER
+// ═══════════════════════════════════════════════════════════════════════
+function drawHBar(ctx,W,H,releases,values,primary,secondary,colors,ts,sty,pla,showLabels,showSLabels){
+  const n=releases.length;
+  const maxVal=Math.max(...values,1);
+  const PAD_L=18,PAD_R=24,PAD_T=60,PAD_B=20;
+  const ROW_H=52,TRACK_H=34,GAP=10,LABEL_W=180,RADIUS=6;
+  const barAreaW=W-PAD_L-LABEL_W-PAD_R;
+  ctx.fillStyle=sty.bg;ctx.fillRect(0,0,W,H);
+  releases.forEach((label,i)=>{
+    const val=values[i],col=colors[i],pct=Math.min(val/maxVal,1);
+    const rowY=PAD_T+i*(ROW_H+GAP),trackY=rowY+(ROW_H-TRACK_H)/2;
+    const trackX=PAD_L+LABEL_W,fillW=Math.max(pct*barAreaW,pct>0?TRACK_H:0);
+    ctx.font=`${ts.xtick.weight} ${ts.xtick.size}px DM Sans`;
+    ctx.fillStyle=col;ctx.textAlign='right';ctx.textBaseline='middle';
+    ctx.fillText(label,PAD_L+LABEL_W-10,trackY+TRACK_H/2);
+    ctx.fillStyle=rgba(col,.10);
+    ctx.beginPath();if(ctx.roundRect)ctx.roundRect(trackX,trackY,barAreaW,TRACK_H,RADIUS);else ctx.rect(trackX,trackY,barAreaW,TRACK_H);ctx.fill();
+    if(fillW>0){
+      const grad=ctx.createLinearGradient(trackX,trackY,trackX+fillW,trackY);
+      grad.addColorStop(0,col);grad.addColorStop(1,rgba(col,.6));
+      ctx.fillStyle=grad;ctx.beginPath();
+      if(ctx.roundRect)ctx.roundRect(trackX,trackY,fillW,TRACK_H,RADIUS);else ctx.rect(trackX,trackY,fillW,TRACK_H);ctx.fill();
+    }
+    const valStr=primary[i]||(($('inp-yprefix').value||'')+val+($('inp-yunit').value||''));
+    ctx.font=`700 ${ts.dlbl.size+1}px DM Sans`;
+    const valW=ctx.measureText(valStr).width,labelInside=fillW>valW+24;
+    ctx.fillStyle=labelInside?'#fff':col;ctx.textAlign=labelInside?'right':'left';ctx.textBaseline='middle';
+    ctx.fillText(valStr,labelInside?trackX+fillW-12:trackX+fillW+10,trackY+TRACK_H/2);
+    if(showSLabels&&secondary[i]){
+      ctx.font=`600 ${ts.slbl.size}px DM Sans`;
+      const sw=ctx.measureText(secondary[i]).width+16,sx=trackX+fillW/2,sy=trackY-14;
+      ctx.fillStyle=ts.slbl.bg;ctx.beginPath();
+      if(ctx.roundRect)ctx.roundRect(sx-sw/2,sy-9,sw,18,9);else ctx.rect(sx-sw/2,sy-9,sw,18);ctx.fill();
+      ctx.fillStyle=ts.slbl.fg;ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(secondary[i],sx,sy);
+    }
+  });
+}
+
+// ═══════════════════════════════════════════════════════════════════════
+// MAIN DRAW
+// ═══════════════════════════════════════════════════════════════════════
+function drawChart(){
+  const canvas=$('mainCanvas'),wrap=$('canvas-wrap');
+  const DPR=window.devicePixelRatio||1;
+  const{releases,values,primary,secondary,colors}=getData();
+  const n=releases.length;if(n<1)return;
+  const ts=getTS(),sty=getSty(),pla=getPlateau();
+  const mode=sty.xlabelMode;
+  const yUnit=$('inp-yunit').value,yPrefix=$('inp-yprefix').value;
+
+  // Measure Y
+  const maxVal=Math.max(...values,.1);
+  const yStep=maxVal<=5?1:maxVal<=10?2:maxVal<=20?5:10;
+  const yMax=Math.ceil(maxVal/yStep)*yStep*1.22;
+  const tmp=document.createElement('canvas').getContext('2d');
+  tmp.font=`${ts.ytick.size}px DM Sans`;
+  let maxYLblW=0;
+  for(let v=0;v<=yMax;v+=yStep)maxYLblW=Math.max(maxYLblW,tmp.measureText(yPrefix+v+yUnit).width);
+  const labelH=measureXLabelH(releases,ts.xtick.size,mode);
+  const PAD={top:60,right:40,bottom:Math.ceil(labelH)+ts.axis.size+30,left:Math.ceil(ts.axis.size+10)+Math.ceil(maxYLblW)+24};
+
+  // ── Smart canvas width ──
+  // Rule: every column/gap gets AT LEAST sty.mincol px.
+  // If that fits inside the wrapper → use wrapper width (no scroll).
+  // If it needs more → canvas expands and canvas-wrap scrolls.
+  // barmaxw caps bar pixel width (not column width) so spacing is always honoured.
+  const wrapW=Math.max(wrap.clientWidth,200),wrapH=Math.max(wrap.clientHeight,200);
+  const nGaps=Math.max(n-1,1);
+  const nSlots=chartType==='bar'?n+1:nGaps;
+
+  // Minimum total plot width = every slot gets at least mincol
+  const minPlotW=nSlots*sty.mincol;
+  // Natural width = fill the wrapper evenly
+  const naturalPW=Math.max(wrapW-PAD.left-PAD.right, minPlotW);
+  // Per-slot width from natural, but never below mincol
+  const colW=Math.max(naturalPW/nSlots, sty.mincol);
+  const PW_plot=nSlots*colW;
+
+  // Canvas = at least wrapper wide; expands when plot needs more room
+  const W=Math.max(wrapW, PAD.left+PAD.right+PW_plot);
+
+  // HBar height
+  const hbarH=60+n*(52+10)+28;
+  const H=chartType==='hbar'?Math.max(hbarH,200):Math.max(wrapH,380,PAD.top+PAD.bottom+160);
+
+  canvas.width=Math.round(W*DPR);canvas.height=Math.round(H*DPR);
+  canvas.style.width=W+'px';canvas.style.height=H+'px';
+  wrap.style.background=sty.bg;
+  document.querySelector('.chart-area').style.background=$('sty-panel-bg').value||'#fff';
+
+  const ctx=canvas.getContext('2d');ctx.scale(DPR,DPR);
+  const PW=PW_plot,PH=H-PAD.top-PAD.bottom;
+  const plotOffsetX=Math.max(0,Math.floor((W-PAD.left-PAD.right-PW)/2));
+  const LPAD=PAD.left+plotOffsetX;
+  const pxX=i=>LPAD+(n>1?(i/(n-1))*PW:PW/2);
+  const colSlotW=PW/(n+1);
+  const barPxX=i=>LPAD+(i+1)*colSlotW;
+  const pxY=v=>PAD.top+PH-(v/yMax)*PH;
+
+  // Store for hit-testing
+  canvas._layout={PAD,PW,PH,LPAD,pxX,barPxX,pxY,yMax,yStep,yUnit,yPrefix};
+
+  // Toggles
+  const showLabels=$('tog-labels').checked,showSLabels=$('tog-slabels').checked;
+  const showTrend=$('tog-trend').checked,showFill=$('tog-fill').checked;
+  const showBadge=$('tog-badge').checked,showAchieve=$('tog-achieve').checked;
+  const showStart=$('tog-start').checked,useSmooth=$('tog-smooth').checked,showDots=$('tog-dots').checked;
+  const badgeText=$('inp-badge').value,badgeCol=$('inp-badge-color').value||'#7B2FBE';
+  const badgeBg=$('inp-badge-bg').value||'#F3E8FF';
+  const achieveText=$('inp-achieve').value;
+  const startLbl=$('inp-startlabel').value;
+  const yLabel=$('inp-ylabel').value,xAxisLabel=$('inp-xlabel').value;
+
+  // HBar early path
+  if(chartType==='hbar'){
+    drawHBar(ctx,W,H,releases,values,primary,secondary,colors,ts,sty,pla,showLabels,showSLabels);
+    if(showBadge&&badgeText)drawPill(ctx,badgeText,W/2,30,badgeCol,badgeBg,badgeCol,ts.badge.size,ts.badge.weight,16,7);
+    return;
+  }
+
+  // BG
+  ctx.fillStyle=sty.bg;ctx.fillRect(0,0,W,H);
+
+  // Grid + axes first
+  ctx.font=`${ts.ytick.size}px DM Sans`;
+  for(let v=0;v<=yMax;v+=yStep){
+    const y=pxY(v);if(y<PAD.top-2||y>PAD.top+PH+2)continue;
+    ctx.strokeStyle=sty.grid;ctx.lineWidth=1;ctx.setLineDash([4,5]);
+    ctx.beginPath();ctx.moveTo(LPAD,y);ctx.lineTo(LPAD+PW,y);ctx.stroke();ctx.setLineDash([]);
+    ctx.fillStyle=ts.ytick.color;ctx.textAlign='right';ctx.textBaseline='middle';
+    ctx.fillText(yPrefix+v+yUnit,LPAD-8,y);
+  }
+  ctx.setLineDash([]);
+  ctx.strokeStyle='#CDD6E2';ctx.lineWidth=1.5;
+  ctx.beginPath();ctx.moveTo(LPAD,PAD.top);ctx.lineTo(LPAD,PAD.top+PH);ctx.stroke();
+  ctx.beginPath();ctx.moveTo(LPAD,PAD.top+PH);ctx.lineTo(LPAD+PW,PAD.top+PH);ctx.stroke();
+
+  // Chart content
+  if(chartType==='bar'){
+    const barW=Math.min(colSlotW*sty.barfill,sty.barmaxw);
+    values.forEach((v,i)=>{
+      const x=barPxX(i),y=pxY(v),h=PAD.top+PH-y,col=colors[i];
+      const grad=ctx.createLinearGradient(x,y,x,PAD.top+PH);
+      grad.addColorStop(0,col);grad.addColorStop(1,rgba(col,.28));
+      ctx.fillStyle=grad;ctx.beginPath();
+      if(ctx.roundRect)ctx.roundRect(x-barW/2,y,barW,h,[sty.bradius,sty.bradius,0,0]);
+      else ctx.rect(x-barW/2,y,barW,h);ctx.fill();
+    });
+  } else {
+    const rawPts=values.map((v,i)=>({x:pxX(i),y:pxY(v)}));
+    let linePts;
+    if(chartType==='step'){
+      linePts=[];
+      for(let i=0;i<rawPts.length-1;i++){linePts.push(rawPts[i]);linePts.push({x:rawPts[i+1].x,y:rawPts[i].y});}
+      linePts.push(rawPts[rawPts.length-1]);
+    } else linePts=(useSmooth&&chartType!=='scatter')?catmull(rawPts):rawPts;
+
+    if(showFill&&chartType!=='scatter'){
+      const grad=ctx.createLinearGradient(LPAD,PAD.top,LPAD+PW,PAD.top);
+      colors.forEach((c,i)=>grad.addColorStop(i/Math.max(n-1,1),rgba(c,.15)));
+      ctx.beginPath();ctx.moveTo(linePts[0].x,pxY(0));ctx.lineTo(linePts[0].x,linePts[0].y);
+      linePts.forEach(p=>ctx.lineTo(p.x,p.y));
+      ctx.lineTo(linePts[linePts.length-1].x,pxY(0));ctx.closePath();
+      ctx.fillStyle=grad;ctx.fill();
+    }
+    if(showTrend&&n>1&&chartType==='line'){
+      const ex=pxX(n-1)-8,ey=pxY(values[n-1]);
+      const angle=Math.atan2(ey-pxY(values[0]),ex-pxX(0));
+      ctx.strokeStyle='#9B59B6';ctx.lineWidth=1.8;ctx.setLineDash([7,4]);
+      ctx.beginPath();ctx.moveTo(pxX(0),pxY(values[0]));ctx.lineTo(ex,ey);ctx.stroke();
+      ctx.setLineDash([]);ctx.fillStyle='#9B59B6';ctx.beginPath();ctx.moveTo(ex,ey);
+      ctx.lineTo(ex-12*Math.cos(angle-.4),ey-12*Math.sin(angle-.4));
+      ctx.lineTo(ex-12*Math.cos(angle+.4),ey-12*Math.sin(angle+.4));ctx.closePath();ctx.fill();
+    }
+    if(chartType!=='scatter'){
+      for(let i=0;i<linePts.length-1;i++){
+        const t=i/(linePts.length-1),seg=t*(n-1),si=Math.min(Math.floor(seg),n-2),sf=seg-si;
+        ctx.beginPath();ctx.moveTo(linePts[i].x,linePts[i].y);ctx.lineTo(linePts[i+1].x,linePts[i+1].y);
+        ctx.strokeStyle=lerpCol(colors[si],colors[si+1]||colors[si],sf);
+        ctx.lineWidth=sty.lw;ctx.lineCap='round';ctx.stroke();
+      }
+    }
+  }
+
+  // ── Draw all plateau boxes ──
+  PLATEAUS.forEach((pla,i)=>{
+    if(pla.hidden) return;
+    // Auto-position on first draw — stagger each one slightly
+    if(!pla.ready){
+      const offsetX=PW*(0.15 + i*0.18);
+      const offsetY=PH*(0.05 + (i%3)*0.08);
+      pla.x=LPAD+Math.min(offsetX, PW*0.6);
+      pla.y=PAD.top+offsetY;
+      pla.w=Math.max(110,PW*0.28);
+      pla.h=Math.max(48,PH*0.18);
+      pla.ready=true;
+    }
+    // Clamp to plot area
+    pla.x=Math.max(LPAD,Math.min(LPAD+PW-pla.w,pla.x));
+    pla.y=Math.max(PAD.top,Math.min(PAD.top+PH-pla.h,pla.y));
+    const{x:bx,y:by,w:bw,h:bh}=pla;
+
+    // Shadow
+    ctx.shadowColor='rgba(0,0,0,.08)';ctx.shadowBlur=8;ctx.shadowOffsetY=2;
+    // Fill
+    ctx.fillStyle=rgba(pla.fill,pla.opacity);
+    ctx.beginPath();
+    if(ctx.roundRect)ctx.roundRect(bx,by,bw,bh,8);else ctx.rect(bx,by,bw,bh);
+    ctx.fill();
+    ctx.shadowColor='transparent';ctx.shadowBlur=0;ctx.shadowOffsetY=0;
+    // Border
+    ctx.strokeStyle=rgba(pla.border,pla.bopacity);
+    ctx.lineWidth=1.8;ctx.setLineDash([6,4]);
+    ctx.beginPath();
+    if(ctx.roundRect)ctx.roundRect(bx,by,bw,bh,8);else ctx.rect(bx,by,bw,bh);
+    ctx.stroke();ctx.setLineDash([]);
+    // Label — positioned by align + nudge offset
+    ctx.font=`${pla.lblWeight} ${pla.lblSize}px DM Sans`;
+    ctx.fillStyle=pla.lblColor;
+
+    const hAlign=pla.lblAlign||'center';
+    const vAlign=pla.lblVAlign||'middle';
+    const pad=10; // minimum padding from box edge
+
+    let lx, ly;
+    // Horizontal
+    if(hAlign==='left')        lx=bx+pad;
+    else if(hAlign==='right')  lx=bx+bw-pad;
+    else                       lx=bx+bw/2;
+    // Vertical
+    if(vAlign==='top')         ly=by+pad+pla.lblSize/2;
+    else if(vAlign==='bottom') ly=by+bh-pad-pla.lblSize/2;
+    else                       ly=by+bh/2;
+
+    // Apply nudge offsets
+    lx+=(pla.lblOffsetX||0);
+    ly+=(pla.lblOffsetY||0);
+
+    // Clamp to stay inside box
+    lx=Math.max(bx+2, Math.min(bx+bw-2, lx));
+    ly=Math.max(by+2, Math.min(by+bh-2, ly));
+
+    ctx.textAlign=hAlign==='left'?'left':hAlign==='right'?'right':'center';
+    ctx.textBaseline='middle';
+    ctx.fillText(pla.label||'Plateau '+(i+1), lx, ly);
+
+    // Store label hit area for Alt+drag
+    pla._lblHit={x:lx,y:ly};
+    // Resize handle dots
+    [[bx+bw,by+bh],[bx+bw,by+bh/2],[bx+bw/2,by+bh]].forEach(([hx,hy])=>{
+      ctx.beginPath();ctx.arc(hx,hy,4,0,Math.PI*2);
+      ctx.fillStyle=rgba(pla.border,Math.min(pla.bopacity+.3,1));ctx.fill();
+    });
+  });
+
+  // Labels
+  drawXLabels(ctx,releases,colors,ts,mode,chartType==='bar'?barPxX:pxX,PH,PAD,LPAD);
+  ctx.font=`600 ${ts.axis.size}px DM Sans`;ctx.fillStyle=ts.axis.color;
+  ctx.textAlign='center';ctx.textBaseline='bottom';ctx.fillText(xAxisLabel,LPAD+PW/2,H-4);
+  ctx.save();ctx.translate(ts.axis.size+4,PAD.top+PH/2);ctx.rotate(-Math.PI/2);
+  ctx.textBaseline='top';ctx.fillText(yLabel,0,0);ctx.restore();
+
+  const activePxX=chartType==='bar'?barPxX:pxX;
+  if(showDots||chartType==='scatter'){
+    values.forEach((v,i)=>{
+      const x=activePxX(i),y=pxY(v),col=colors[i],r=sty.dot;
+      ctx.beginPath();ctx.arc(x,y+2,r+3,0,Math.PI*2);ctx.fillStyle='rgba(0,0,0,.06)';ctx.fill();
+      ctx.beginPath();ctx.arc(x,y,r+5,0,Math.PI*2);ctx.fillStyle=rgba(col,.14);ctx.fill();
+      ctx.beginPath();ctx.arc(x,y,r+2,0,Math.PI*2);ctx.fillStyle=rgba(col,.34);ctx.fill();
+      ctx.beginPath();ctx.arc(x,y,r,0,Math.PI*2);ctx.fillStyle=col;ctx.fill();
+      ctx.strokeStyle='white';ctx.lineWidth=2;ctx.beginPath();ctx.arc(x,y,r,0,Math.PI*2);ctx.stroke();
+    });
+  }
+  if(showLabels){
+    values.forEach((v,i)=>{
+      const x=activePxX(i),y=pxY(v),col=colors[i],lbl=primary[i];if(!lbl)return;
+      const above=(y-PAD.top)>45,cy=above?y-32:y+32;
+      drawPill(ctx,lbl,x,cy,col,'rgba(255,255,255,.95)',col,ts.dlbl.size,ts.dlbl.weight,10,5);
+      ctx.strokeStyle=rgba(col,.4);ctx.lineWidth=1;ctx.setLineDash([2,2]);
+      ctx.beginPath();ctx.moveTo(x,above?y-(sty.dot+4):y+(sty.dot+4));ctx.lineTo(x,above?cy+10:cy-10);ctx.stroke();ctx.setLineDash([]);
+    });
+  }
+  if(showSLabels){
+    values.forEach((v,i)=>{
+      const x=activePxX(i),y=pxY(v),lbl=secondary[i];if(!lbl)return;
+      const above=(y-PAD.top)>48,cy=above?y-(34+ts.slbl.offset):y+(34+ts.slbl.offset);
+      drawPill(ctx,lbl,x,cy,ts.slbl.fg,ts.slbl.bg,ts.slbl.border,ts.slbl.size,'600',8,4);
+    });
+  }
+  if(showBadge&&badgeText)drawPill(ctx,badgeText,LPAD+PW/2,PAD.top-28,badgeCol,badgeBg,badgeCol,ts.badge.size,ts.badge.weight,16,7);
+  if(showAchieve&&achieveText){
+    const ax=LPAD+PW*(ts.achieve.x/100),ay=PAD.top+PH*(ts.achieve.y/100);
+    drawPill(ctx,achieveText,ax,ay,ts.achieve.color,ts.achieve.bg,ts.achieve.color,ts.achieve.size,ts.achieve.weight,14,6);
+  }
+  if(showStart&&n>0){
+    const x=activePxX(0),y=pxY(values[0]),col=colors[0];
+    const txt=startLbl+': '+yPrefix+values[0]+yUnit;
+    drawPill(ctx,txt,x,y-58,col,'rgba(255,248,248,.95)',col,ts.dlbl.size,'700',9,5);
+    ctx.strokeStyle=rgba(col,.4);ctx.lineWidth=1;ctx.setLineDash([3,3]);
+    ctx.beginPath();ctx.moveTo(x,y-48);ctx.lineTo(x,y-(sty.dot+4));ctx.stroke();ctx.setLineDash([]);
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════════════
+// CANVAS CLICK — context-sensitive panel jump
+// ═══════════════════════════════════════════════════════════════════════
+$('mainCanvas').addEventListener('click',e=>{
+  const canvas=$('mainCanvas');
+  const layout=canvas._layout;if(!layout)return;
+  const DPR=window.devicePixelRatio||1;
+  const r=canvas.getBoundingClientRect();
+  const cx=(e.clientX-r.left);
+  const cy=(e.clientY-r.top);
+  const{PAD,PW,PH,LPAD,pxX,barPxX,pxY,yMax}=layout;
+  const{values}=getData();
+
+  // Hit any plateau?
+  for(let i=0;i<PLATEAUS.length;i++){
+    const pla=PLATEAUS[i];
+    if(pla.hidden||!pla.ready) continue;
+    if(cx>=pla.x&&cx<=pla.x+pla.w&&cy>=pla.y&&cy<=pla.y+pla.h){
+      focusPanel('overlay');
+      // Open that plateau's card
+      PLATEAUS.forEach((p,j)=>p._open=(j===i));
+      renderPlateauList();
+      return;
+    }
+  }
+  // Hit title area?
+  if(cy<PAD.top-10){focusPanel('labels');return;}
+  // Hit a data point?
+  const activePxX=chartType==='bar'?barPxX:pxX;
+  const sty=getSty();
+  let hit=-1;
+  values.forEach((v,i)=>{
+    const px=activePxX(i),py=pxY(v);
+    if(Math.hypot(cx-px,cy-py)<18){hit=i;}
+  });
+  if(hit>=0){
+    focusPanel('data');
+    document.querySelectorAll('.dp-card').forEach((c,i)=>{
+      c.classList.toggle('selected',i===hit);
+      if(i===hit)c.scrollIntoView({behavior:'smooth',block:'nearest'});
+    });
+    return;
+  }
+  // Hit axis area?
+  if(cx<LPAD+20){focusPanel('text');return;}
+  if(cy>PAD.top+PH){focusPanel('text');return;}
+});
+
+// ═══════════════════════════════════════════════════════════════════════
+// PLATEAU DRAG / RESIZE — works on all plateaus
+// ═══════════════════════════════════════════════════════════════════════
+(function(){
+  const canvas=$('mainCanvas');
+  function canvasXY(e){
+    const r=canvas.getBoundingClientRect();
+    const cl=e.touches?e.touches[0]:e;
+    return{x:(cl.clientX-r.left),y:(cl.clientY-r.top)};
+  }
+  function getEdge(pla,cx,cy){
+    const{x:bx,y:by,w:bw,h:bh}=pla;
+    const onR=Math.abs(cx-(bx+bw))<=RESIZE_HIT,onB=Math.abs(cy-(by+bh))<=RESIZE_HIT;
+    const inX=cx>=bx&&cx<=bx+bw,inY=cy>=by&&cy<=by+bh;
+    if(onR&&onB)return'br';if(onR&&inY)return'r';if(onB&&inX)return'b';return'';
+  }
+  function hitPlateau(cx,cy){
+    // Check in reverse order (topmost = last drawn = highest index)
+    for(let i=PLATEAUS.length-1;i>=0;i--){
+      const pla=PLATEAUS[i];
+      if(pla.hidden||!pla.ready) continue;
+      const edge=getEdge(pla,cx,cy);
+      if(edge) return{i,edge};
+      if(cx>=pla.x&&cx<=pla.x+pla.w&&cy>=pla.y&&cy<=pla.y+pla.h) return{i,edge:'move'};
+    }
+    return null;
+  }
+
+  canvas.addEventListener('mousedown',e=>{
+    const{x:cx,y:cy}=canvasXY(e);
+
+    // Alt+click = drag label within its box
+    if(e.altKey){
+      for(let i=PLATEAUS.length-1;i>=0;i--){
+        const pla=PLATEAUS[i];
+        if(pla.hidden||!pla.ready||!pla._lblHit) continue;
+        const{x:lx,y:ly}=pla._lblHit;
+        if(Math.hypot(cx-lx,cy-ly)<20){
+          activePlaIdx=i;
+          pla.lblDragging=true;
+          pla.dragOX=cx; pla.dragOY=cy;
+          e.preventDefault(); return;
+        }
+      }
+    }
+
+    const hit=hitPlateau(cx,cy);
+    if(!hit) return;
+    activePlaIdx=hit.i;
+    const pla=PLATEAUS[hit.i];
+    if(hit.edge==='move'){
+      pla.dragging=true;pla.dragOX=cx-pla.x;pla.dragOY=cy-pla.y;
+    } else {
+      pla.resizing=true;pla.resizeEdge=hit.edge;pla.dragOX=cx;pla.dragOY=cy;
+    }
+    e.preventDefault();
+  });
+
+  document.addEventListener('mousemove',e=>{
+    if(activePlaIdx<0) return;
+    const pla=PLATEAUS[activePlaIdx];
+    if(!pla) return;
+    const{x:cx,y:cy}=canvasXY(e);
+
+    if(pla.lblDragging){
+      // Move label offset by delta
+      const dx=cx-pla.dragOX, dy=cy-pla.dragOY;
+      pla.lblOffsetX=(pla.lblOffsetX||0)+dx;
+      pla.lblOffsetY=(pla.lblOffsetY||0)+dy;
+      pla.dragOX=cx; pla.dragOY=cy;
+      // Sync nudge inputs if panel is open
+      renderPlateauList();
+      drawChart(); e.preventDefault();
+    } else if(pla.dragging){
+      pla.x=cx-pla.dragOX; pla.y=cy-pla.dragOY;
+      drawChart(); e.preventDefault();
+    } else if(pla.resizing){
+      const dx=cx-pla.dragOX,dy=cy-pla.dragOY;
+      if(pla.resizeEdge==='r'||pla.resizeEdge==='br') pla.w=Math.max(60,pla.w+dx);
+      if(pla.resizeEdge==='b'||pla.resizeEdge==='br') pla.h=Math.max(28,pla.h+dy);
+      pla.dragOX=cx; pla.dragOY=cy;
+      drawChart(); e.preventDefault();
+    }
+  });
+
+  document.addEventListener('mouseup',()=>{
+    if(activePlaIdx>=0){
+      const pla=PLATEAUS[activePlaIdx];
+      if(pla){pla.dragging=false;pla.resizing=false;pla.lblDragging=false;}
+      activePlaIdx=-1;
+    }
+  });
+
+  // Update cursor when hovering plateaus
+  canvas.addEventListener('mousemove',e=>{
+    if(activePlaIdx>=0) return;
+    const{x:cx,y:cy}=canvasXY(e);
+
+    // Alt held: check label hit
+    if(e.altKey){
+      for(let i=PLATEAUS.length-1;i>=0;i--){
+        const pla=PLATEAUS[i];
+        if(pla.hidden||!pla.ready||!pla._lblHit) continue;
+        if(Math.hypot(cx-pla._lblHit.x,cy-pla._lblHit.y)<20){
+          canvas.style.cursor='text'; return;
+        }
+      }
+    }
+
+    const hit=hitPlateau(cx,cy);
+    if(!hit){canvas.style.cursor='crosshair';return;}
+    const edge=hit.edge;
+    if(edge==='br') canvas.style.cursor='nwse-resize';
+    else if(edge==='r') canvas.style.cursor='ew-resize';
+    else if(edge==='b') canvas.style.cursor='ns-resize';
+    else canvas.style.cursor='move';
+  });
+})();
+
+// ═══════════════════════════════════════════════════════════════════════
+// KPI
+// ═══════════════════════════════════════════════════════════════════════
+function rebuildKPI(){
+  const strip=$('kpi-strip');
+  strip.style.display=$('tog-kpi').checked?'flex':'none';
+  if(!$('tog-kpi').checked)return;
+  strip.innerHTML='';
+  document.querySelectorAll('#kpi-edit-rows .kpi-edit-row').forEach(row=>{
+    const inp=row.querySelectorAll('input');
+    const val=inp[0]?.value,lbl=inp[1]?.value,col=inp[2]?.value||'#0080BA';
+    const{r,g,b}=hexToRgb(col);
+    const card=document.createElement('div');card.className='kpi-card';
+    card.style.cssText=`background:rgba(${r},${g},${b},.12);border-color:${col};color:${col}`;
+    card.innerHTML=`<div class="kpi-val">${val}</div><div class="kpi-lbl">${lbl}</div>`;
+    card.onclick=()=>focusPanel('data');
+    strip.appendChild(card);
+  });
+}
+function addKPI(){
+  const div=document.createElement('div');div.className='kpi-edit-row';
+  div.innerHTML=`<input type="text" value="Val"/><input type="text" value="Label"/><input type="color" value="#0080BA"/><button class="dp-rm" onclick="this.closest('.kpi-edit-row').remove()">×</button>`;
+  $('kpi-edit-rows').appendChild(div);
+}
+function buildKPIEditor(kpis){
+  $('kpi-edit-rows').innerHTML='';
+  kpis.forEach(k=>{
+    const div=document.createElement('div');div.className='kpi-edit-row';
+    div.innerHTML=`<input type="text" value="${escHtml(k.val)}"/><input type="text" value="${escHtml(k.lbl)}"/><input type="color" value="${k.col}"/><button class="dp-rm" onclick="this.closest('.kpi-edit-row').remove()">×</button>`;
+    $('kpi-edit-rows').appendChild(div);
+  });
+}
+
+// ═══════════════════════════════════════════════════════════════════════
+// APPLY ALL
+// ═══════════════════════════════════════════════════════════════════════
+function applyAll(){
+  const ts=getTS();
+  $('disp-title').textContent=$('inp-title').value;
+  $('disp-title').style.cssText=`font-size:${ts.title.size}px;font-weight:${ts.title.weight};color:${ts.title.color};font-family:${ts.title.font};line-height:1.2;cursor:pointer;border-radius:4px;padding:2px 4px;margin:-2px -4px;`;
+  $('disp-sub').textContent=$('inp-subtitle').value;
+  $('disp-sub').style.cssText=`font-size:${ts.sub.size}px;color:${ts.sub.color};font-style:italic;margin-top:3px;cursor:pointer;border-radius:4px;padding:1px 4px;margin-left:-4px;`;
+  // NOTE: do NOT reset plateau positions here — Apply should never move them
+  rebuildKPI();
+  renderPlateauList();
+  drawChart();
+  updateStyleSectionVisibility();
+  autoSave();
+}
+
+// ═══════════════════════════════════════════════════════════════════════
+// PERSIST — localStorage
+// ═══════════════════════════════════════════════════════════════════════
+const LS_WS='chartpro_ws_v2',LS_PRESETS='chartpro_presets_v2';
+
+function collectState(){
+  const fields={};
+  document.querySelectorAll('.panel-body input[type=text],.panel-body input[type=number],.panel-body input[type=color],.panel-body select,.panel-body input[type=checkbox]').forEach(el=>{
+    if(!el.id)return;
+    fields[el.id]=el.type==='checkbox'?el.checked:el.value;
+  });
+  const points=[];
+  document.querySelectorAll('.dp-card').forEach(card=>{
+    points.push({
+      x:card.querySelector('.dp-xlabel')?.value||'',
+      v:card.querySelector('.dp-value')?.value||0,
+      p:card.querySelector('.dp-primary')?.value||'',
+      s:card.querySelector('.dp-secondary')?.value||'',
+      c:card.querySelector('input[type=color]')?.value||'#0080BA',
+    });
+  });
+  const kpis=[];
+  document.querySelectorAll('#kpi-edit-rows .kpi-edit-row').forEach(row=>{
+    const inp=row.querySelectorAll('input');
+    kpis.push({val:inp[0]?.value||'',lbl:inp[1]?.value||'',col:inp[2]?.value||'#0080BA'});
+  });
+  return{fields,points,kpis,chartType,ts:Date.now()};
+}
+
+function restoreState(state){
+  if(!state)return;
+  const{fields={},points=[],kpis=[]}=state;
+  Object.entries(fields).forEach(([id,val])=>{
+    const el=$(id);if(!el)return;
+    if(el.type==='checkbox')el.checked=!!val;else el.value=val;
+    if(el.type==='color'){const t=$(id+'-t');if(t)t.value=val;}
+  });
+  if(state.chartType){
+    chartType=state.chartType;
+    document.querySelectorAll('.ct-tab').forEach(b=>b.classList.toggle('active',b.dataset.type===chartType));
+  }
+  if(points.length){$('dp-list').innerHTML='';points.forEach((p,i)=>appendCard(p,i));updateDpCount();}
+  if(kpis.length)buildKPIEditor(kpis);
+}
+
+function autoSave(){
+  try{
+    // Save current tab state
+    if(activeTabId){const t=tabs.find(t=>t.id===activeTabId);if(t){t.state=collectState();t.type=chartType;}}
+    localStorage.setItem(LS_WS,JSON.stringify({tabs,activeTabId}));
+    const ind=$('autosave-indicator');
+    if(ind){ind.style.color='var(--green)';setTimeout(()=>ind.style.color='var(--text3)',2000);}
+  }catch(e){console.warn('Auto-save failed',e);}
+}
+
+// Presets
+function loadPresetList(){try{return JSON.parse(localStorage.getItem(LS_PRESETS)||'[]');}catch{return[];}}
+function savePresetList(list){localStorage.setItem(LS_PRESETS,JSON.stringify(list));}
+function savePreset(){
+  const name=($('preset-name-inp').value||'').trim();if(!name){alert('Enter a name.');return;}
+  const list=loadPresetList();
+  list.unshift({name,state:collectState(),tabName:tabs.find(t=>t.id===activeTabId)?.name||'Chart',saved:new Date().toLocaleString()});
+  savePresetList(list);$('preset-name-inp').value='';renderPresetList();
+}
+function renderPresetList(){
+  const list=loadPresetList();const el=$('preset-list');
+  if(!list.length){el.innerHTML='<div class="preset-empty">No presets yet.</div>';return;}
+  el.innerHTML='';
+  list.forEach((p,i)=>{
+    const div=document.createElement('div');div.className='preset-item';
+    div.innerHTML=`<div class="preset-item-name">${escHtml(p.name)}</div><div class="preset-item-date">${escHtml(p.saved||'')}</div><button class="btn-load-preset" onclick="loadPreset(${i})">Load</button><button class="btn-del-preset" onclick="deletePreset(${i})">×</button>`;
+    el.appendChild(div);
+  });
+}
+function loadPreset(i){const list=loadPresetList();if(!list[i])return;restoreState(list[i].state);setTimeout(applyAll,60);$('presetModal').classList.add('hidden');}
+function deletePreset(i){if(!confirm('Delete?'))return;const list=loadPresetList();list.splice(i,1);savePresetList(list);renderPresetList();}
+function openPresetModal(){renderPresetList();$('presetModal').classList.remove('hidden');}
+
+// JSON
+function exportJSON(){
+  const state=collectState();
+  const blob=new Blob([JSON.stringify(state,null,2)],{type:'application/json'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='chartpro.json';a.click();URL.revokeObjectURL(a.href);
+}
+function importJSONFile(input){
+  const file=input.files[0];if(!file)return;
+  const reader=new FileReader();
+  reader.onload=e=>{try{restoreState(JSON.parse(e.target.result));setTimeout(applyAll,60);$('presetModal').classList.add('hidden');}catch{alert('Invalid JSON file.');}};
+  reader.readAsText(file);
+}
+
+// ── Import from old ChartPro HTML file ──
+function importHTMLFile(input){
+  const file=input.files[0];if(!file)return;
+  const reader=new FileReader();
+  reader.onload=e=>{
+    try{
+      // Parse the HTML string into a document we can query
+      const parser=new DOMParser();
+      const doc=parser.parseFromString(e.target.result,'text/html');
+
+      // ── 1. Extract all named inputs/selects/checkboxes ──
+      const fields={};
+      doc.querySelectorAll('input[id],select[id]').forEach(el=>{
+        if(!el.id) return;
+        fields[el.id] = el.type==='checkbox' ? el.checked : el.value;
+      });
+
+      // ── 2. Extract data points from INITIAL_POINTS or dp-cards ──
+      const points=[];
+      // Try INITIAL_POINTS array from script text
+      const scriptText=Array.from(doc.querySelectorAll('script')).map(s=>s.textContent).join('\n');
+      const initMatch=scriptText.match(/(?:INITIAL_POINTS|getDefaultState[^}]+points)\s*=\s*\[([^\]]+(?:\[[^\]]*\][^\]]*)*)\]/s);
+      if(initMatch){
+        // Parse each object literal
+        const raw=initMatch[1];
+        const objRe=/\{([^}]+)\}/g;
+        let m;
+        while((m=objRe.exec(raw))!==null){
+          try{
+            const obj={};
+            m[1].replace(/(\w+)\s*:\s*'([^']*)'/g,(_,k,v)=>obj[k]=v);
+            m[1].replace(/(\w+)\s*:\s*([\d.]+)/g,(_,k,v)=>obj[k]=parseFloat(v));
+            if(obj.x!==undefined||obj.v!==undefined){
+              points.push({x:obj.x||'',v:obj.v||0,p:obj.p||'',s:obj.s||'',c:obj.c||'#0080BA'});
+            }
+          }catch(e2){}
+        }
+      }
+      // Fallback: try reading rendered dp-cards (won't work for JS-built cards but worth trying)
+      if(!points.length){
+        doc.querySelectorAll('.dp-card').forEach(card=>{
+          points.push({
+            x:card.querySelector('.dp-xlabel')?.value||'',
+            v:parseFloat(card.querySelector('.dp-value')?.value)||0,
+            p:card.querySelector('.dp-primary')?.value||'',
+            s:card.querySelector('.dp-secondary')?.value||'',
+            c:card.querySelector('input[type=color]')?.value||'#0080BA',
+          });
+        });
+      }
+
+      // ── 3. Extract KPI rows ──
+      const kpis=[];
+      doc.querySelectorAll('.kpi-edit-row').forEach(row=>{
+        const inp=row.querySelectorAll('input');
+        if(inp.length>=3) kpis.push({val:inp[0].value,lbl:inp[1].value,col:inp[2].value});
+      });
+      // Fallback: try to find KPI defaults in script
+      if(!kpis.length){
+        const kpiMatch=scriptText.match(/kpis\s*=\s*\[([^\]]+)\]/s);
+        if(kpiMatch){
+          const objRe=/\{([^}]+)\}/g;let m;
+          while((m=objRe.exec(kpiMatch[1]))!==null){
+            const obj={};
+            m[1].replace(/\b(val|lbl|col)\s*:\s*'([^']*)'/g,(_,k,v)=>obj[k]=v);
+            if(obj.val||obj.lbl) kpis.push({val:obj.val||'',lbl:obj.lbl||'',col:obj.col||'#0080BA'});
+          }
+        }
+      }
+
+      // ── 4. Try to detect chart type ──
+      let detectedType='line';
+      const ctActive=doc.querySelector('.ct-tab.active');
+      if(ctActive) detectedType=ctActive.dataset.type||'line';
+
+      // ── 5. Build state and restore ──
+      const state={fields, points:points.length?points:undefined, kpis:kpis.length?kpis:undefined, chartType:detectedType};
+      restoreState(state);
+      setTimeout(applyAll,80);
+      $('presetModal').classList.add('hidden');
+      alert(`✅ Imported from "${file.name}" — ${points.length} data points loaded.${points.length===0?' (Data points could not be extracted — please re-enter them manually.)':''}`);
+    }catch(err){
+      console.error('HTML import error',err);
+      alert('Could not import from this HTML file. Try exporting JSON from the old file and importing that instead.');
+    }
+  };
+  reader.readAsText(file);
+}
+
+// ═══════════════════════════════════════════════════════════════════════
+// EXPORT PNG / SVG
+// ═══════════════════════════════════════════════════════════════════════
+let CROP={x:0,y:0,w:0,h:0};
+const PREVIEW_MAX=380;
+function openExportModal(){
+  const src=$('mainCanvas'),dpr=window.devicePixelRatio||1;
+  CROP={x:0,y:0,w:Math.round(src.width/dpr),h:Math.round(src.height/dpr)};
+  syncCropInputs();renderPreview();$('exportModal').classList.remove('hidden');
+}
+function closeExportModal(){$('exportModal').classList.add('hidden');}
+function resetCrop(){const src=$('mainCanvas'),dpr=window.devicePixelRatio||1;CROP={x:0,y:0,w:Math.round(src.width/dpr),h:Math.round(src.height/dpr)};syncCropInputs();renderPreview();}
+function syncCropInputs(){$('crop-x').value=Math.round(CROP.x);$('crop-y').value=Math.round(CROP.y);$('crop-w').value=Math.round(CROP.w);$('crop-h').value=Math.round(CROP.h);}
+function renderPreview(){
+  const src=$('mainCanvas'),prev=$('exportPreviewCanvas'),dpr=window.devicePixelRatio||1;
+  const scale=Math.min(1,PREVIEW_MAX/Math.round(src.width/dpr));
+  const dW=Math.round((src.width/dpr)*scale),dH=Math.round((src.height/dpr)*scale);
+  prev.width=dW;prev.height=dH;prev.style.width=dW+'px';prev.style.height=dH+'px';
+  const pctx=prev.getContext('2d');pctx.drawImage(src,0,0,src.width,src.height,0,0,dW,dH);
+  const cx=CROP.x*scale,cy=CROP.y*scale,cw=CROP.w*scale,ch=CROP.h*scale;
+  pctx.fillStyle='rgba(0,0,0,.45)';
+  pctx.fillRect(0,0,dW,cy);pctx.fillRect(0,cy,cx,ch);pctx.fillRect(cx+cw,cy,dW-(cx+cw),ch);pctx.fillRect(0,cy+ch,dW,dH-(cy+ch));
+  pctx.strokeStyle='#3DABDE';pctx.lineWidth=2;pctx.setLineDash([5,3]);pctx.strokeRect(cx,cy,cw,ch);pctx.setLineDash([]);
+  [[cx,cy],[cx+cw,cy],[cx,cy+ch],[cx+cw,cy+ch],[cx+cw/2,cy],[cx+cw/2,cy+ch],[cx,cy+ch/2],[cx+cw,cy+ch/2]].forEach(([hx,hy])=>{
+    pctx.fillStyle='#fff';pctx.beginPath();pctx.arc(hx,hy,5,0,Math.PI*2);pctx.fill();
+    pctx.fillStyle='#3DABDE';pctx.beginPath();pctx.arc(hx,hy,4,0,Math.PI*2);pctx.fill();
+  });
+}
+(function(){
+  let drag=null;const SNAP=10;
+  function getScale(){const src=$('mainCanvas'),dpr=window.devicePixelRatio||1;return Math.min(1,PREVIEW_MAX/Math.round(src.width/dpr));}
+  function edgeAt(mx,my){
+    const sc=getScale(),cx=CROP.x*sc,cy=CROP.y*sc,cw=CROP.w*sc,ch=CROP.h*sc;
+    const midX=cx+cw/2,midY=cy+ch/2;
+    const pts={nw:[cx,cy],n:[midX,cy],ne:[cx+cw,cy],w:[cx,midY],e:[cx+cw,midY],sw:[cx,cy+ch],s:[midX,cy+ch],se:[cx+cw,cy+ch]};
+    for(const[k,[px,py]]of Object.entries(pts))if(Math.hypot(mx-px,my-py)<SNAP)return k;
+    if(mx>cx&&mx<cx+cw&&my>cy&&my<cy+ch)return'move';return null;
+  }
+  document.addEventListener('mousedown',e=>{
+    const prev=$('exportPreviewCanvas');if(e.target!==prev)return;
+    const r=prev.getBoundingClientRect(),mx=e.clientX-r.left,my=e.clientY-r.top;
+    const edge=edgeAt(mx,my);if(edge){drag={edge,sx:mx,sy:my,sc0:{...CROP}};e.preventDefault();}
+  });
+  document.addEventListener('mousemove',e=>{
+    if(!drag)return;
+    const prev=$('exportPreviewCanvas'),r=prev.getBoundingClientRect();
+    const sc=getScale(),src=$('mainCanvas'),dpr=window.devicePixelRatio||1;
+    const maxW=Math.round(src.width/dpr),maxH=Math.round(src.height/dpr);
+    const dx=(e.clientX-r.left-drag.sx)/sc,dy=(e.clientY-r.top-drag.sy)/sc;
+    let{x,y,w,h}=drag.sc0;const edge=drag.edge;
+    if(edge==='move'){x+=dx;y+=dy;}
+    if(edge.includes('e'))w=Math.max(10,drag.sc0.w+dx);if(edge.includes('s'))h=Math.max(10,drag.sc0.h+dy);
+    if(edge.includes('w')){const nw=Math.max(10,drag.sc0.w-dx);x=drag.sc0.x+drag.sc0.w-nw;w=nw;}
+    if(edge.includes('n')){const nh=Math.max(10,drag.sc0.h-dy);y=drag.sc0.y+drag.sc0.h-nh;h=nh;}
+    CROP.x=Math.max(0,Math.min(maxW-10,x));CROP.y=Math.max(0,Math.min(maxH-10,y));
+    CROP.w=Math.max(10,Math.min(maxW-CROP.x,w));CROP.h=Math.max(10,Math.min(maxH-CROP.y,h));
+    syncCropInputs();renderPreview();e.preventDefault();
+  });
+  document.addEventListener('mouseup',()=>drag=null);
+})();
+function getCroppedDataURL(){
+  const src=$('mainCanvas'),dpr=window.devicePixelRatio||1,scale=+$('sty-export-scale')?.value||2;
+  const cx=Math.round(CROP.x*dpr),cy=Math.round(CROP.y*dpr),cw=Math.round(CROP.w*dpr),ch=Math.round(CROP.h*dpr);
+  const out=document.createElement('canvas');out.width=Math.round(CROP.w*scale);out.height=Math.round(CROP.h*scale);
+  out.getContext('2d').drawImage(src,cx,cy,cw,ch,0,0,out.width,out.height);
+  return out.toDataURL('image/png',1.0);
+}
+function downloadCroppedPNG(){const a=document.createElement('a');a.download='chart.png';a.href=getCroppedDataURL();a.click();}
+function downloadSVG(){
+  const src=$('mainCanvas'),dpr=window.devicePixelRatio||1,scale=+$('sty-export-scale')?.value||2;
+  const cx=Math.round(CROP.x*dpr),cy=Math.round(CROP.y*dpr),cw=Math.round(CROP.w*dpr),ch=Math.round(CROP.h*dpr);
+  const out=document.createElement('canvas');out.width=Math.round(CROP.w*scale);out.height=Math.round(CROP.h*scale);
+  out.getContext('2d').drawImage(src,cx,cy,cw,ch,0,0,out.width,out.height);
+  const pngData=out.toDataURL('image/png',1.0);
+  const svgW=Math.round(CROP.w),svgH=Math.round(CROP.h);
+  const svgStr=`<?xml version="1.0" encoding="UTF-8"?>\n<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="${svgW}" height="${svgH}" viewBox="0 0 ${svgW} ${svgH}">\n  <title>${escHtml($('inp-title')?.value||'Chart')}</title>\n  <rect width="${svgW}" height="${svgH}" fill="${$('sty-bg')?.value||'#fff'}"/>\n  <image x="0" y="0" width="${svgW}" height="${svgH}" preserveAspectRatio="xMidYMid meet" xlink:href="${pngData}"/>\n</svg>`;
+  const blob=new Blob([svgStr],{type:'image/svg+xml'});
+  const url=URL.createObjectURL(blob);const a=document.createElement('a');a.download='chart.svg';a.href=url;a.click();setTimeout(()=>URL.revokeObjectURL(url),2000);
+}
+
+// ═══════════════════════════════════════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════════════════════════════════════
+window.addEventListener('load',()=>{
+  // Chart type tabs
+  $('chartTypeTabs').querySelectorAll('.ct-tab').forEach(btn=>{
+    btn.addEventListener('click',()=>{
+      document.querySelectorAll('.ct-tab').forEach(b=>b.classList.remove('active'));
+      btn.classList.add('active');chartType=btn.dataset.type;
+      if(activeTabId){const t=tabs.find(t=>t.id===activeTabId);if(t)t.type=chartType;}
+      updateStyleSectionVisibility();drawChart();
+    });
+  });
+
+  // Wire color pickers
+  [
+    ['ts-title-color','ts-title-color-t'],['ts-sub-color','ts-sub-color-t'],
+    ['ts-axis-color','ts-axis-color-t'],['ts-ytick-color','ts-ytick-color-t'],
+    ['ts-slbl-bg','ts-slbl-bg-t'],['ts-slbl-fg','ts-slbl-fg-t'],['ts-slbl-border','ts-slbl-border-t'],
+    ['ts-achieve-color','ts-achieve-color-t'],['ts-achieve-bg','ts-achieve-bg-t'],
+    ['inp-badge-color','inp-badge-color-t'],['inp-badge-bg','inp-badge-bg-t'],
+    ['sty-bg','sty-bg-t'],['sty-panel-bg','sty-panel-bg-t'],
+  ].forEach(([a,b])=>wireColorRow(a,b));
+
+  // Crop inputs
+  ['crop-x','crop-y','crop-w','crop-h'].forEach(id=>{
+    const el=$(id);if(!el)return;
+    el.addEventListener('input',()=>{
+      const src=$('mainCanvas'),dpr=window.devicePixelRatio||1;
+      const maxW=Math.round(src.width/dpr),maxH=Math.round(src.height/dpr);
+      CROP.x=Math.max(0,Math.min(maxW-10,+$('crop-x').value||0));
+      CROP.y=Math.max(0,Math.min(maxH-10,+$('crop-y').value||0));
+      CROP.w=Math.max(10,Math.min(maxW-CROP.x,+$('crop-w').value||maxW));
+      CROP.h=Math.max(10,Math.min(maxH-CROP.y,+$('crop-h').value||maxH));
+      renderPreview();
+    });
+  });
+
+  // Restore workspace from localStorage
+  try{
+    const saved=localStorage.getItem(LS_WS);
+    if(saved){
+      const ws=JSON.parse(saved);
+      if(ws.tabs&&ws.tabs.length){
+        tabs=ws.tabs;activeTabId=ws.activeTabId||ws.tabs[0].id;
+        const activeTab=tabs.find(t=>t.id===activeTabId);
+        if(activeTab){chartType=activeTab.type;restoreState(activeTab.state);}
+        else{activeTabId=tabs[0].id;chartType=tabs[0].type;restoreState(tabs[0].state);}
+        renderTabs();
+        setTimeout(applyAll,100);return;
+      }
+    }
+  }catch(e){console.warn('Restore failed',e);}
+
+  // Fresh start
+  const tab=createTab('Chart 1','line');
+  activeTabId=tab.id;
+  renderTabs();
+  buildDataCards();
+  buildKPIEditor(getDefaultState().kpis);
+  renderPlateauList();
+  setTimeout(applyAll,100);
+});
+
+window.addEventListener('resize',()=>drawChart());
+</script>
+</body>
+</html>
