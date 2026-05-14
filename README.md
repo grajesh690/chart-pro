@@ -4,6 +4,7 @@ A modern, single-file interactive chart editor built with pure HTML, CSS, and Ja
 
 ChartPro Workspace provides a highly customizable visual charting experience with support for multiple chart types, editable overlays, export capabilities, workspace tabs, KPI cards, presets, and advanced styling controls — all without any external framework dependencies.
 
+⭐ If you like this project, consider starring the repo and supporting development through GitHub Sponsors.
 ---
 
 ## ✨ Features
@@ -171,6 +172,23 @@ Tested on:
 - Interactive chart editing
 - Persistent presets
 - Real-time customization
+
+---
+
+## ❤️ Support This Project
+
+If this project helps you, consider supporting ongoing development through GitHub Sponsors.
+
+Your support helps fund:
+
+- New chart types
+- Better export capabilities
+- Dark mode
+- CSV/data integrations
+- Performance improvements
+- Long-term maintenance
+
+Every ⭐ star and sponsorship helps the project grow.
 
 ---
 
